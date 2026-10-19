@@ -165,5 +165,14 @@ class TestCLIParserKeyTester(unittest.TestCase):
         self.assertTrue(args.mock)
 
 
+class TestKeyPaletteDialog(unittest.TestCase):
+
+    @unittest.skipUnless(PYQT_AVAILABLE, "PyQt6 is required for dialog tests")
+    def test_palette_dialog_creation(self):
+        from rk68.gui.remap_dialog import KeyPaletteDialog
+        dlg = KeyPaletteDialog()
+        self.assertIsNotNone(dlg)
+
+
 if __name__ == "__main__":
     unittest.main()

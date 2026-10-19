@@ -45,6 +45,24 @@ class TestRK68Layout(unittest.TestCase):
     def test_find_key_nonexistent(self):
         self.assertIsNone(find_key("nonexistent_key_12345"))
 
+    def test_remap_targets_available(self):
+        from rk68.layout import REMAP_TARGETS
+        self.assertGreater(len(REMAP_TARGETS), 50)
+
+        # F-keys
+        f5 = find_key("f5")
+        self.assertIsNotNone(f5)
+        self.assertEqual(f5.code, 0x3E)
+
+        # Media keys
+        vol_up = find_key("volume_up")
+        self.assertIsNotNone(vol_up)
+        self.assertEqual(vol_up.code, 0xE9)
+
+        mute = find_key("mute")
+        self.assertIsNotNone(mute)
+        self.assertEqual(mute.code, 0xE2)
+
 
 if __name__ == "__main__":
     unittest.main()

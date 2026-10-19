@@ -9,9 +9,10 @@ from ..constants import (
     DEFAULT_BACKLIGHT_RGB,
 )
 from ..device import RK68Device, MockRK68Device
-from ..layout import find_key, KEY_DEFINITIONS
+from ..layout import find_key, KEY_DEFINITIONS, RemapTarget, REMAP_TARGETS
 from .keyboard_widget import KeyboardCanvas, PYQT_AVAILABLE
 from .key_tester import KeyTesterWidget
+from .remap_dialog import KeyPaletteDialog
 
 if PYQT_AVAILABLE:
     from PyQt6.QtCore import Qt, QEvent
@@ -201,33 +202,57 @@ class RK68MainWindow(QMainWindow):
 
         bottom_layout.addWidget(light_box, stretch=3)
 
-        # Key Mapping & Custom Key Box
-        key_box = QGroupBox("Selected Key Details")
+        # Key Mapping Box
+        key_box = QGroupBox("Key Remapping")
         key_layout = QVBoxLayout(key_box)
 
         self.key_info_label = QLabel("Click any keycap above to view or remap.")
+        self.key_info_label.setStyleSheet("color: #e5c07b; font-weight: bold;")
         key_layout.addWidget(self.key_info_label)
 
-        remap_row = QHBoxLayout()
-        remap_row.addWidget(QLabel("Remap to Scancode:"))
-        self.remap_input = QLineEdit()
-        self.remap_input.setPlaceholderText("e.g. 0x14 or Control")
-        remap_row.addWidget(self.remap_input)
-        key_layout.addLayout(remap_row)
+        # Target Button Selection Row
+        target_row = QHBoxLayout()
+        target_row.addWidget(QLabel("Remap to:"))
+
+        self.remap_target_combo = QComboBox()
+        self.remap_target_combo.setEditable(True)
+        self.remap_target_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self._populate_remap_combo()
+        target_row.addWidget(self.remap_target_combo, stretch=1)
+
+        palette_btn = QPushButton("Browse Buttons...")
+        palette_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #383c48;
+                color: #61afef;
+                border: 1px solid #4b5263;
+                border-radius: 4px;
+                padding: 4px 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4b5263;
+                color: #ffffff;
+            }
+        """)
+        palette_btn.clicked.connect(self._open_key_palette)
+        target_row.addWidget(palette_btn)
+        key_layout.addLayout(target_row)
 
         key_btn_row = QHBoxLayout()
-        assign_remap_btn = QPushButton("Remap Key")
+        assign_remap_btn = QPushButton("Remap Selected Key")
+        assign_remap_btn.setStyleSheet("background-color: #98c379; color: #1e1e24; font-weight: bold;")
         assign_remap_btn.clicked.connect(self._assign_remap)
         key_btn_row.addWidget(assign_remap_btn)
 
-        clear_remap_btn = QPushButton("Clear Remap")
+        clear_remap_btn = QPushButton("Restore Default")
         clear_remap_btn.clicked.connect(self._clear_remap)
         key_btn_row.addWidget(clear_remap_btn)
 
         key_layout.addLayout(key_btn_row)
         key_layout.addStretch()
 
-        bottom_layout.addWidget(key_box, stretch=2)
+        bottom_layout.addWidget(key_box, stretch=3)
 
         config_layout.addLayout(bottom_layout)
 
@@ -307,41 +332,86 @@ class RK68MainWindow(QMainWindow):
         self.speed_val_label.setText(str(self.speed_slider.value()))
         self.keyboard_canvas.set_brightness(bright)
 
+    def _populate_remap_combo(self):
+        self.remap_target_combo.clear()
+        for t in REMAP_TARGETS:
+            self.remap_target_combo.addItem(f"{t.desc} ({t.category}) [0x{t.code:02X}]", t)
+
+    def _open_key_palette(self):
+        current_target = self.remap_target_combo.currentData()
+        current_code = current_target.code if current_target else None
+        dlg = KeyPaletteDialog(self, current_code=current_code)
+        if dlg.exec():
+            selected = dlg.selected_target
+            if selected:
+                for i in range(self.remap_target_combo.count()):
+                    t = self.remap_target_combo.itemData(i)
+                    if t and t.code == selected.code:
+                        self.remap_target_combo.setCurrentIndex(i)
+                        break
+
     def _on_key_selected(self, key_def):
-        self.key_info_label.setText(
-            f"Key: {key_def.desc} ({key_def.name})\nScancode: 0x{key_def.code:02X}"
-        )
-        if key_def.name in self.current_profile.key_remaps:
-            self.remap_input.setText(self.current_profile.key_remaps[key_def.name])
+        current_map = self.current_profile.key_remaps.get(key_def.name)
+        if current_map:
+            target_key = find_key(current_map)
+            desc_text = target_key.desc if target_key else current_map
+            self.key_info_label.setText(
+                f"Selected Key: {key_def.desc} ({key_def.name})\nRemapped to: {desc_text}"
+            )
+            # Pre-select in target combo
+            for i in range(self.remap_target_combo.count()):
+                t = self.remap_target_combo.itemData(i)
+                if t and (t.name.lower() == str(current_map).lower() or hex(t.code).lower() == str(current_map).lower()):
+                    self.remap_target_combo.setCurrentIndex(i)
+                    break
         else:
-            self.remap_input.clear()
+            self.key_info_label.setText(
+                f"Selected Key: {key_def.desc} ({key_def.name})\nMapping: Factory Default"
+            )
+            for i in range(self.remap_target_combo.count()):
+                t = self.remap_target_combo.itemData(i)
+                if t and t.code == key_def.code:
+                    self.remap_target_combo.setCurrentIndex(i)
+                    break
 
     def _assign_remap(self):
         selected = self.keyboard_canvas.selected_key
         if not selected:
-            QMessageBox.warning(self, "No Key Selected", "Please select a key on the keyboard canvas first.")
+            QMessageBox.warning(self, "No Key Selected", "Please click a keycap on the keyboard above first.")
             return
-        target = self.remap_input.text().strip()
+
+        target = self.remap_target_combo.currentData()
         if not target:
             return
-        self.current_profile.key_remaps[selected.name] = target
+
+        self.current_profile.key_remaps[selected.name] = hex(target.code)
+        self.key_info_label.setText(
+            f"Selected Key: {selected.desc} ({selected.name})\nRemapped to: {target.desc} (0x{target.code:02X})"
+        )
         QMessageBox.information(
-            self, "Key Remapped", f"Key '{selected.desc}' will be remapped to '{target}' on Apply."
+            self,
+            "Key Remapped",
+            f"Key '{selected.desc}' will be remapped to '{target.desc}' (0x{target.code:02X}).\n\n"
+            "Click 'Apply Configuration to RK68' below to write to keyboard onboard memory."
         )
 
     def _clear_remap(self):
         selected = self.keyboard_canvas.selected_key
         if not selected:
-            QMessageBox.warning(self, "No Key Selected", "Please select a key on the keyboard canvas first.")
+            QMessageBox.warning(self, "No Key Selected", "Please click a keycap on the keyboard above first.")
             return
         if selected.name in self.current_profile.key_remaps:
             del self.current_profile.key_remaps[selected.name]
-            self.remap_input.clear()
+            self.key_info_label.setText(
+                f"Selected Key: {selected.desc} ({selected.name})\nMapping: Factory Default"
+            )
             QMessageBox.information(
                 self, "Remap Cleared", f"Key '{selected.desc}' restored to factory default."
             )
         else:
-            self.remap_input.clear()
+            QMessageBox.information(
+                self, "Default", f"Key '{selected.desc}' is already at its factory default."
+            )
 
     def _color_selected_key(self):
         pass
@@ -392,7 +462,10 @@ class RK68MainWindow(QMainWindow):
                     k_def = find_key(k_name)
                     if k_def:
                         try:
-                            target_sc = int(scancode_str, 16) if scancode_str.startswith("0x") else int(scancode_str)
+                            target_k = find_key(scancode_str)
+                            target_sc = target_k.code if target_k else (
+                                int(scancode_str, 16) if scancode_str.startswith("0x") else int(scancode_str)
+                            )
                             self.device.remap_key(k_def.code, target_sc)
                         except ValueError:
                             pass

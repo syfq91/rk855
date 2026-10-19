@@ -186,6 +186,15 @@ def cmd_reset(args, dev: RK68Device):
     return 0
 
 
+def cmd_test(args, dev: RK68Device):
+    """Launch the interactive Key Tester interface."""
+    from .gui.main import main as gui_main
+    gui_args = ["--tester"]
+    if args.mock:
+        gui_args.append("--mock")
+    return gui_main(gui_args)
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="rk68",
@@ -199,6 +208,10 @@ def create_parser() -> argparse.ArgumentParser:
 
     # info
     subparsers.add_parser("info", help="Show keyboard detection and USB connection status")
+
+    # test
+    test_parser = subparsers.add_parser("test", help="Launch interactive Key Switch Matrix Tester")
+    test_parser.add_argument("--mock", action="store_true", help="Run with mock device")
 
     # light
     light_parser = subparsers.add_parser("light", help="Set RGB backlight mode and parameters")
@@ -257,6 +270,8 @@ def main(argv=None):
     try:
         if args.command == "info":
             return cmd_info(args, dev)
+        elif args.command == "test":
+            return cmd_test(args, dev)
         elif args.command == "light":
             return cmd_light(args, dev, cfg)
         elif args.command == "remap":

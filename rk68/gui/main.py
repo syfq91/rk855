@@ -16,11 +16,13 @@ def main(argv=None):
     app = QApplication(argv or sys.argv)
     app.setApplicationName("RK68 Linux Configurator")
 
-    # Check for --mock flag
-    is_mock = "--mock" in (argv or sys.argv)
+    # Check for --mock and --tester flags
+    args = argv or sys.argv
+    is_mock = "--mock" in args
+    start_tab = "tester" if ("--tester" in args or "--test" in args) else "config"
     device = MockRK68Device() if is_mock else RK68Device()
 
-    window = RK68MainWindow(device=device)
+    window = RK68MainWindow(device=device, start_tab=start_tab)
     window.show()
 
     return app.exec()

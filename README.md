@@ -15,6 +15,7 @@ Reverse-engineered from the original vendor installer (`GamingForceZ-RK68-Setup-
 - **Dual Interface**:
   - **`rk68` / `rk68-cli`**: Fast, scriptable command-line interface.
   - **`rk68-gui`**: Modern PyQt6 graphical interface with a live interactive 68-key visual layout and color picker.
+- **Interactive Key Switch Tester**: Dedicated 68-key switch actuation tester with live pressed/tested state rendering, progress stats, scancode inspector, keystroke history, and audio feedback.
 
 ---
 
@@ -101,6 +102,15 @@ rk68 profile save gaming
 rk68 profile load gaming
 ```
 
+### Key Switch Tester
+```bash
+# Launch interactive Key Switch Matrix Tester directly
+rk68 test
+
+# Test in mock mode without physical keyboard
+rk68 test --mock
+```
+
 ### Factory Reset
 ```bash
 rk68 reset
@@ -113,11 +123,21 @@ rk68 reset
 Launch the visual application:
 ```bash
 rk68-gui
+# Or launch directly into the key tester:
+rk68-gui --tester
 ```
-The GUI displays an interactive rendered 68-key keyboard matching the physical layout:
-- **Click any keycap** to inspect its scancode, assign an individual RGB color, or remap its function.
-- **Sliders & Color Wheel** provide live adjustment of lighting effects.
-- **Profiles Dropdown** allows instant switching between saved configurations.
+The GUI provides two organized workspaces:
+1. **🎛️ Lighting & Remap**:
+   - **Click any keycap** to inspect its scancode, assign an individual RGB color, or remap its function.
+   - **Sliders & Color Wheel** provide live adjustment of lighting effects.
+   - **Profiles Dropdown** allows instant switching between saved configurations.
+2. **⌨️ Key Switch Tester**:
+   - **Full 68-key actuation matrix**: Keys turn vibrant cyan while pressed and persist in emerald green once actuated.
+   - **Live Keystroke Inspector**: Displays key name, USB scancode, event state, and hardware scancode.
+   - **Keystroke Stream History**: Shows a rolling log of recent keystrokes.
+   - **Progress Counter**: Tracks tested key percentage (e.g. `45 / 68 Keys Tested (66%)`).
+   - **Audio Click Feedback**: Optional audio chirp on switch actuation.
+   - **Reset Test Button**: Clears test data to test again.
 
 ---
 

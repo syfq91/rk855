@@ -6,9 +6,10 @@ from ..constants import LightingMode
 from ..device import RK68Device, MockRK68Device
 from ..layout import find_key, KEY_DEFINITIONS
 from .keyboard_widget import KeyboardCanvas, PYQT_AVAILABLE
+from .key_tester import KeyTesterWidget
 
 if PYQT_AVAILABLE:
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import Qt, QEvent
     from PyQt6.QtGui import QColor, QIcon
     from PyQt6.QtWidgets import (
         QColorDialog,
@@ -22,6 +23,7 @@ if PYQT_AVAILABLE:
         QPushButton,
         QSlider,
         QSpinBox,
+        QTabWidget,
         QVBoxLayout,
         QWidget,
     )
@@ -32,7 +34,12 @@ else:
 class RK68MainWindow(QMainWindow):
     """Primary desktop interface for Royal Kludge RK68 on Linux."""
 
-    def __init__(self, device: Optional[RK68Device] = None, config_manager: Optional[ConfigManager] = None):
+    def __init__(
+        self,
+        device: Optional[RK68Device] = None,
+        config_manager: Optional[ConfigManager] = None,
+        start_tab: str = "config",
+    ):
         if not PYQT_AVAILABLE:
             raise RuntimeError(
                 "PyQt6 is required to run the graphical interface. Install with: pip install PyQt6"
@@ -47,7 +54,7 @@ class RK68MainWindow(QMainWindow):
         self.current_color = QColor(self.current_profile.color)
 
         self.setWindowTitle("Royal Kludge RK68 Linux Configurator")
-        self.resize(920, 620)
+        self.resize(940, 680)
         self.setStyleSheet("""
             QMainWindow { background-color: #1e1e24; }
             QLabel { color: #e0e0e0; font-size: 13px; }
@@ -59,10 +66,18 @@ class RK68MainWindow(QMainWindow):
             QComboBox { background-color: #2c313a; color: #ffffff; border: 1px solid #4b5263; border-radius: 4px; padding: 4px 8px; }
             QSlider::groove:horizontal { height: 6px; background: #3e4451; border-radius: 3px; }
             QSlider::handle:horizontal { background: #61afef; width: 16px; margin-top: -5px; margin-bottom: -5px; border-radius: 8px; }
+            QTabWidget::pane { border: 1px solid #383c48; border-radius: 6px; background-color: #1e1e24; top: -1px; }
+            QTabBar::tab { background: #252830; color: #abb2bf; border: 1px solid #383c48; border-bottom: none; padding: 7px 18px; margin-right: 4px; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; font-size: 13px; }
+            QTabBar::tab:selected { background: #2c313a; color: #61afef; border-color: #61afef; border-bottom: 2px solid #61afef; }
+            QTabBar::tab:hover:!selected { background: #2e333d; color: #ffffff; }
         """)
 
         self._init_ui()
         self._load_profile_ui(self.current_profile)
+
+        if start_tab in ("test", "tester", "key_tester"):
+            self.tabs.setCurrentIndex(1)
+            self.key_tester.setFocus()
 
     def _init_ui(self):
         main_widget = QWidget()
@@ -94,10 +109,20 @@ class RK68MainWindow(QMainWindow):
 
         main_layout.addLayout(top_layout)
 
+        # Tab Navigation Widget
+        self.tabs = QTabWidget()
+        self.tabs.currentChanged.connect(self._on_tab_changed)
+
+        # Tab 1: Configurator (Lighting & Remapping)
+        config_tab = QWidget()
+        config_layout = QVBoxLayout(config_tab)
+        config_layout.setContentsMargins(4, 8, 4, 4)
+        config_layout.setSpacing(10)
+
         # Keyboard Canvas Widget
         self.keyboard_canvas = KeyboardCanvas(self)
         self.keyboard_canvas.key_selected.connect(self._on_key_selected)
-        main_layout.addWidget(self.keyboard_canvas, alignment=Qt.AlignmentFlag.AlignCenter)
+        config_layout.addWidget(self.keyboard_canvas, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Controls Section
         bottom_layout = QHBoxLayout()
@@ -180,7 +205,7 @@ class RK68MainWindow(QMainWindow):
 
         bottom_layout.addWidget(key_box, stretch=2)
 
-        main_layout.addLayout(bottom_layout)
+        config_layout.addLayout(bottom_layout)
 
         # Bottom Apply Row
         apply_layout = QHBoxLayout()
@@ -190,9 +215,31 @@ class RK68MainWindow(QMainWindow):
         self.apply_btn.setFixedHeight(38)
         self.apply_btn.clicked.connect(self._apply_to_hardware)
         apply_layout.addWidget(self.apply_btn)
-        main_layout.addLayout(apply_layout)
+        config_layout.addLayout(apply_layout)
 
+        self.tabs.addTab(config_tab, "🎛️ Lighting & Remap")
+
+        # Tab 2: Key Switch Tester
+        self.key_tester = KeyTesterWidget(self)
+        self.tabs.addTab(self.key_tester, "⌨️ Key Switch Tester")
+
+        main_layout.addWidget(self.tabs)
+
+        self.installEventFilter(self)
         self._check_device_status()
+
+    def _on_tab_changed(self, index: int):
+        if index == 1:
+            self.key_tester.setFocus()
+
+    def eventFilter(self, watched, event):
+        if hasattr(self, "tabs") and self.tabs.currentIndex() == 1:
+            if event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+                is_press = (event.type() == QEvent.Type.KeyPress)
+                consumed = self.key_tester.handle_key_event(event, is_press)
+                if consumed:
+                    return True
+        return super().eventFilter(watched, event)
 
     def _check_device_status(self):
         devices = RK68Device.enumerate_devices()

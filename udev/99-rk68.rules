@@ -1,0 +1,8 @@
+# Udev rule for Royal Kludge RK68 / RK855 / RKW855 (Sonix USB MCU)
+# Allows non-root users to read and write HID feature reports
+
+# hidraw access
+KERNEL=="hidraw*", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8018", MODE="0666", TAG+="uaccess"
+
+# libusb / USB subsystem access
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8018", MODE="0666", TAG+="uaccess"

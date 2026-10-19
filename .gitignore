@@ -1,0 +1,33 @@
+# Installer and binary dumps
+GamingForceZ-RK68-Setup-1.0.1.1.exe
+*.exe
+*.cab
+*.hdr
+
+# Python byte code and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*~

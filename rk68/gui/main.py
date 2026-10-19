@@ -16,10 +16,15 @@ def main(argv=None):
     app = QApplication(argv or sys.argv)
     app.setApplicationName("RK68 Linux Configurator")
 
-    # Check for --mock and --tester flags
+    # Check for --mock, --tester, and --remap flags
     args = argv or sys.argv
     is_mock = "--mock" in args
-    start_tab = "tester" if ("--tester" in args or "--test" in args) else "config"
+    if "--tester" in args or "--test" in args:
+        start_tab = "tester"
+    elif "--remap" in args or "--remapping" in args:
+        start_tab = "remap"
+    else:
+        start_tab = "lighting"
     device = MockRK68Device() if is_mock else RK68Device()
 
     window = RK68MainWindow(device=device, start_tab=start_tab)

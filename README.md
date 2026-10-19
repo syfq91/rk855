@@ -128,13 +128,18 @@ rk68-gui
 # Or launch directly into the key tester:
 rk68-gui --tester
 ```
-The GUI provides two organized workspaces:
-1. **🎛️ Lighting & Remap**:
-   - **Click any keycap** to inspect its scancode, view key details, or remap its function.
-   - **Lighting Sliders**: Adjust animation speed (1-5) and blue LED brightness (0-5).
+The GUI provides three dedicated workspaces:
+1. **💡 Backlight Lighting**:
+   - **Interactive Visual Preview**: Authentic ice blue LED keyboard canvas reacting dynamically to brightness level.
+   - **Lighting Sliders**: Adjust animation speed (1–5) and blue LED brightness (0–5).
    - **Monochrome Hardware Status**: Confirms fixed Single-Color Ice Blue LED hardware mode.
-   - **Profiles Dropdown**: Allows instant switching between saved configurations.
-2. **⌨️ Key Switch Tester**:
+   - **One-Click Apply**: Write lighting parameters directly to the keyboard's onboard controller.
+2. **🔄 Key Remapping**:
+   - **Visual Key Selection**: Click any keycap on the interactive keyboard canvas to select it.
+   - **Searchable Button Picker**: Choose from all alphanumeric keys, F-keys (F1–F12), navigation, volume, media keys, and system functions via dropdown or visual button palette dialog (`Browse Buttons...`).
+   - **Active Remaps Summary**: High-visibility overview of all custom key remappings in the active profile.
+   - **One-Click Apply & Restore**: Write custom scancodes to onboard memory or restore factory defaults.
+3. **⌨️ Key Switch Tester**:
    - **Full 68-key actuation matrix**: Keys turn vibrant cyan while pressed and persist in emerald green once actuated.
    - **Live Keystroke Inspector**: Displays key name, USB scancode, event state, and hardware scancode.
    - **Keystroke Stream History**: Shows a rolling log of recent keystrokes.

@@ -60,7 +60,7 @@ class RK68MainWindow(QMainWindow):
         self.current_color = QColor(self.current_profile.color)
 
         self.setWindowTitle("Royal Kludge RK68 Linux Configurator")
-        self.resize(940, 680)
+        self.resize(940, 720)
         self.setStyleSheet("""
             QMainWindow { background-color: #1e1e24; }
             QLabel { color: #e0e0e0; font-size: 13px; }
@@ -82,8 +82,10 @@ class RK68MainWindow(QMainWindow):
         self._load_profile_ui(self.current_profile)
 
         if start_tab in ("test", "tester", "key_tester"):
-            self.tabs.setCurrentIndex(1)
+            self.tabs.setCurrentWidget(self.key_tester)
             self.key_tester.setFocus()
+        elif start_tab in ("remap", "remapping"):
+            self.tabs.setCurrentWidget(self.remap_tab)
 
     def _init_ui(self):
         main_widget = QWidget()
@@ -119,23 +121,23 @@ class RK68MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.currentChanged.connect(self._on_tab_changed)
 
-        # Tab 1: Configurator (Lighting & Remapping)
-        config_tab = QWidget()
-        config_layout = QVBoxLayout(config_tab)
-        config_layout.setContentsMargins(4, 8, 4, 4)
-        config_layout.setSpacing(10)
+        # ==========================================
+        # Tab 1: 💡 Backlight Lighting
+        # ==========================================
+        self.lighting_tab = QWidget()
+        lighting_layout = QVBoxLayout(self.lighting_tab)
+        lighting_layout.setContentsMargins(12, 12, 12, 12)
+        lighting_layout.setSpacing(12)
 
-        # Keyboard Canvas Widget
+        # Keyboard Canvas Widget for Lighting Preview
         self.keyboard_canvas = KeyboardCanvas(self)
         self.keyboard_canvas.key_selected.connect(self._on_key_selected)
-        config_layout.addWidget(self.keyboard_canvas, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # Controls Section
-        bottom_layout = QHBoxLayout()
+        lighting_layout.addWidget(self.keyboard_canvas, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Lighting Box
         light_box = QGroupBox("Backlight & Blue LED Effects (Monochrome)")
         light_layout = QVBoxLayout(light_box)
+        light_layout.setSpacing(10)
 
         # Mode
         mode_row = QHBoxLayout()
@@ -200,14 +202,41 @@ class RK68MainWindow(QMainWindow):
         led_row.addStretch()
         light_layout.addLayout(led_row)
 
-        bottom_layout.addWidget(light_box, stretch=3)
+        lighting_layout.addWidget(light_box)
+        lighting_layout.addStretch()
+
+        # Bottom Apply Row for Lighting
+        apply_light_layout = QHBoxLayout()
+        apply_light_layout.addStretch()
+        self.apply_btn = QPushButton("Apply Lighting to RK68")
+        self.apply_btn.setObjectName("applyBtn")
+        self.apply_btn.setFixedHeight(38)
+        self.apply_btn.clicked.connect(self._apply_to_hardware)
+        apply_light_layout.addWidget(self.apply_btn)
+        lighting_layout.addLayout(apply_light_layout)
+
+        self.tabs.addTab(self.lighting_tab, "💡 Backlight Lighting")
+
+        # ==========================================
+        # Tab 2: 🔄 Key Remapping
+        # ==========================================
+        self.remap_tab = QWidget()
+        remap_layout = QVBoxLayout(self.remap_tab)
+        remap_layout.setContentsMargins(12, 12, 12, 12)
+        remap_layout.setSpacing(12)
+
+        # Dedicated Keyboard Canvas Widget for Key Remapping Selection
+        self.remap_canvas = KeyboardCanvas(self)
+        self.remap_canvas.key_selected.connect(self._on_key_selected)
+        remap_layout.addWidget(self.remap_canvas, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Key Mapping Box
         key_box = QGroupBox("Key Remapping")
         key_layout = QVBoxLayout(key_box)
+        key_layout.setSpacing(10)
 
-        self.key_info_label = QLabel("Click any keycap above to view or remap.")
-        self.key_info_label.setStyleSheet("color: #e5c07b; font-weight: bold;")
+        self.key_info_label = QLabel("Click any keycap on the keyboard above to view or remap.")
+        self.key_info_label.setStyleSheet("color: #e5c07b; font-weight: bold; font-size: 13px;")
         key_layout.addWidget(self.key_info_label)
 
         # Target Button Selection Row
@@ -248,27 +277,31 @@ class RK68MainWindow(QMainWindow):
         clear_remap_btn = QPushButton("Restore Default")
         clear_remap_btn.clicked.connect(self._clear_remap)
         key_btn_row.addWidget(clear_remap_btn)
-
         key_layout.addLayout(key_btn_row)
-        key_layout.addStretch()
 
-        bottom_layout.addWidget(key_box, stretch=3)
+        # Active Remappings Overview
+        self.active_remaps_label = QLabel()
+        self.active_remaps_label.setWordWrap(True)
+        key_layout.addWidget(self.active_remaps_label)
 
-        config_layout.addLayout(bottom_layout)
+        remap_layout.addWidget(key_box)
+        remap_layout.addStretch()
 
-        # Bottom Apply Row
-        apply_layout = QHBoxLayout()
-        apply_layout.addStretch()
-        self.apply_btn = QPushButton("Apply Configuration to RK68")
-        self.apply_btn.setObjectName("applyBtn")
-        self.apply_btn.setFixedHeight(38)
-        self.apply_btn.clicked.connect(self._apply_to_hardware)
-        apply_layout.addWidget(self.apply_btn)
-        config_layout.addLayout(apply_layout)
+        # Bottom Apply Row for Remapping
+        apply_remap_layout = QHBoxLayout()
+        apply_remap_layout.addStretch()
+        self.apply_remap_btn = QPushButton("Apply Remapping to RK68")
+        self.apply_remap_btn.setObjectName("applyBtn")
+        self.apply_remap_btn.setFixedHeight(38)
+        self.apply_remap_btn.clicked.connect(self._apply_to_hardware)
+        apply_remap_layout.addWidget(self.apply_remap_btn)
+        remap_layout.addLayout(apply_remap_layout)
 
-        self.tabs.addTab(config_tab, "🎛️ Lighting & Remap")
+        self.tabs.addTab(self.remap_tab, "🔄 Key Remapping")
 
-        # Tab 2: Key Switch Tester
+        # ==========================================
+        # Tab 3: ⌨️ Key Switch Tester
+        # ==========================================
         self.key_tester = KeyTesterWidget(self)
         self.tabs.addTab(self.key_tester, "⌨️ Key Switch Tester")
 
@@ -278,11 +311,11 @@ class RK68MainWindow(QMainWindow):
         self._check_device_status()
 
     def _on_tab_changed(self, index: int):
-        if index == 1:
+        if hasattr(self, "key_tester") and self.tabs.currentWidget() == self.key_tester:
             self.key_tester.setFocus()
 
     def eventFilter(self, watched, event):
-        if hasattr(self, "tabs") and self.tabs.currentIndex() == 1:
+        if hasattr(self, "tabs") and hasattr(self, "key_tester") and self.tabs.currentWidget() == self.key_tester:
             if event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
                 is_press = (event.type() == QEvent.Type.KeyPress)
                 consumed = self.key_tester.handle_key_event(event, is_press)
@@ -319,6 +352,9 @@ class RK68MainWindow(QMainWindow):
         self.speed_val_label.setText(str(profile.speed))
         self.current_color = QColor(DEFAULT_BACKLIGHT_COLOR)
         self.keyboard_canvas.set_brightness(profile.brightness)
+        if hasattr(self, "remap_canvas"):
+            self.remap_canvas.set_brightness(profile.brightness)
+        self._update_active_remaps_display()
 
     def _update_color_button(self):
         pass
@@ -331,6 +367,8 @@ class RK68MainWindow(QMainWindow):
         self.bright_val_label.setText(str(bright))
         self.speed_val_label.setText(str(self.speed_slider.value()))
         self.keyboard_canvas.set_brightness(bright)
+        if hasattr(self, "remap_canvas"):
+            self.remap_canvas.set_brightness(bright)
 
     def _populate_remap_combo(self):
         self.remap_target_combo.clear()
@@ -351,6 +389,13 @@ class RK68MainWindow(QMainWindow):
                         break
 
     def _on_key_selected(self, key_def):
+        if hasattr(self, "keyboard_canvas"):
+            self.keyboard_canvas.selected_key = key_def
+            self.keyboard_canvas.update()
+        if hasattr(self, "remap_canvas"):
+            self.remap_canvas.selected_key = key_def
+            self.remap_canvas.update()
+
         current_map = self.current_profile.key_remaps.get(key_def.name)
         if current_map:
             target_key = find_key(current_map)
@@ -374,8 +419,26 @@ class RK68MainWindow(QMainWindow):
                     self.remap_target_combo.setCurrentIndex(i)
                     break
 
+    def _update_active_remaps_display(self):
+        if not hasattr(self, "active_remaps_label"):
+            return
+        if not self.current_profile or not self.current_profile.key_remaps:
+            self.active_remaps_label.setText("Active Remaps: None (all 68 keys at factory default).")
+            self.active_remaps_label.setStyleSheet("color: #7f848e; font-style: italic; font-size: 12px; padding-top: 4px;")
+        else:
+            items = []
+            for k_name, scancode_str in self.current_profile.key_remaps.items():
+                k_def = find_key(k_name)
+                src = k_def.desc if k_def else k_name
+                tgt_key = find_key(scancode_str)
+                tgt = tgt_key.desc if tgt_key else scancode_str
+                items.append(f"<span style='color: #61afef;'>{src}</span> ➔ <span style='color: #98c379;'>{tgt}</span>")
+            summary = "<b>Active Remaps:</b> " + " &nbsp;|&nbsp; ".join(items)
+            self.active_remaps_label.setText(summary)
+            self.active_remaps_label.setStyleSheet("color: #abb2bf; font-size: 12px; padding-top: 4px;")
+
     def _assign_remap(self):
-        selected = self.keyboard_canvas.selected_key
+        selected = (getattr(self, "remap_canvas", None) and self.remap_canvas.selected_key) or self.keyboard_canvas.selected_key
         if not selected:
             QMessageBox.warning(self, "No Key Selected", "Please click a keycap on the keyboard above first.")
             return
@@ -388,15 +451,16 @@ class RK68MainWindow(QMainWindow):
         self.key_info_label.setText(
             f"Selected Key: {selected.desc} ({selected.name})\nRemapped to: {target.desc} (0x{target.code:02X})"
         )
+        self._update_active_remaps_display()
         QMessageBox.information(
             self,
             "Key Remapped",
             f"Key '{selected.desc}' will be remapped to '{target.desc}' (0x{target.code:02X}).\n\n"
-            "Click 'Apply Configuration to RK68' below to write to keyboard onboard memory."
+            "Click 'Apply Remapping to RK68' below to write to keyboard onboard memory."
         )
 
     def _clear_remap(self):
-        selected = self.keyboard_canvas.selected_key
+        selected = (getattr(self, "remap_canvas", None) and self.remap_canvas.selected_key) or self.keyboard_canvas.selected_key
         if not selected:
             QMessageBox.warning(self, "No Key Selected", "Please click a keycap on the keyboard above first.")
             return
@@ -405,6 +469,7 @@ class RK68MainWindow(QMainWindow):
             self.key_info_label.setText(
                 f"Selected Key: {selected.desc} ({selected.name})\nMapping: Factory Default"
             )
+            self._update_active_remaps_display()
             QMessageBox.information(
                 self, "Remap Cleared", f"Key '{selected.desc}' restored to factory default."
             )

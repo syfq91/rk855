@@ -174,5 +174,43 @@ class TestKeyPaletteDialog(unittest.TestCase):
         self.assertIsNotNone(dlg)
 
 
+class TestMainWindowTabs(unittest.TestCase):
+
+    @unittest.skipUnless(PYQT_AVAILABLE, "PyQt6 is required for window tests")
+    def test_window_tabs_split(self):
+        from rk68.gui.window import RK68MainWindow
+        from rk68.device import MockRK68Device
+        from rk68.config import ConfigManager
+        import tempfile
+        import os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg = ConfigManager(config_dir=tmpdir)
+            dev = MockRK68Device()
+
+            win = RK68MainWindow(device=dev, config_manager=cfg, start_tab="lighting")
+            self.assertEqual(win.tabs.count(), 3)
+            self.assertIn("Lighting", win.tabs.tabText(0))
+            self.assertIn("Remapping", win.tabs.tabText(1))
+            self.assertIn("Tester", win.tabs.tabText(2))
+            self.assertEqual(win.tabs.currentIndex(), 0)
+
+            # Test start_tab="remap"
+            win_remap = RK68MainWindow(device=dev, config_manager=cfg, start_tab="remap")
+            self.assertEqual(win_remap.tabs.currentIndex(), 1)
+
+            # Test start_tab="tester"
+            win_tester = RK68MainWindow(device=dev, config_manager=cfg, start_tab="tester")
+            self.assertEqual(win_tester.tabs.currentIndex(), 2)
+
+            # Test key selection updates label and remap canvas
+            k_space = CODE_TO_KEY[0x2C]
+            win.remap_canvas.key_selected.emit(k_space)
+            self.assertIn("Space", win.key_info_label.text())
+            self.assertEqual(win.remap_canvas.selected_key.code, 0x2C)
+            self.assertEqual(win.keyboard_canvas.selected_key.code, 0x2C)
+
+
 if __name__ == "__main__":
     unittest.main()
+

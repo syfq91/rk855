@@ -29,12 +29,18 @@ class KeyboardCanvas(QWidget):
         self.setMinimumSize(800, 274)
         self.selected_key: Optional[KeyDefinition] = None
         self.key_colors: Dict[int, Tuple[int, int, int]] = {}
-        self.default_key_color = QColor(45, 45, 50)
-        self.border_color = QColor(70, 70, 80)
-        self.selected_border_color = QColor(0, 180, 255)
-        self.text_color = QColor(220, 220, 225)
+        self.brightness: int = 4
+        self.default_key_color = QColor(30, 32, 38)
+        self.hover_key_color = QColor(48, 52, 62)
+        self.selected_border_color = QColor(0, 229, 255)
         self.setMouseTracking(True)
         self.hovered_key: Optional[KeyDefinition] = None
+
+    def set_brightness(self, level: int):
+        """Set the visual backlight brightness level (0-5)."""
+        self.brightness = max(0, min(5, int(level)))
+        if PYQT_AVAILABLE:
+            self.update()
 
     def set_key_color(self, key_code: int, r: int, g: int, b: int):
         self.key_colors[key_code] = (r, g, b)
@@ -60,7 +66,12 @@ class KeyboardCanvas(QWidget):
 
         # Draw dark keyboard backplate
         backplate_rect = QRectF(0, 0, self.width(), self.height())
-        painter.fillRect(backplate_rect, QColor(25, 25, 30))
+        painter.fillRect(backplate_rect, QColor(20, 21, 26))
+
+        # Soft blue underglow across backplate when backlight is active
+        if self.brightness > 0:
+            glow_alpha = int(10 * self.brightness)
+            painter.fillRect(backplate_rect, QColor(0, 168, 255, glow_alpha))
 
         font = QFont("Segoe UI", int(9 * min(sx, sy)), QFont.Weight.Bold)
         painter.setFont(font)
@@ -72,29 +83,34 @@ class KeyboardCanvas(QWidget):
             kh = k.rect_height * sy
             key_rect = QRectF(kx, ky, kw, kh)
 
-            # Key fill color
-            if k.code in self.key_colors:
-                r, g, b = self.key_colors[k.code]
-                fill_color = QColor(r, g, b)
-            elif k == self.hovered_key:
-                fill_color = QColor(60, 60, 70)
+            # Key fill color: dark mechanical keycap
+            if k == self.hovered_key:
+                fill_color = self.hover_key_color
             else:
                 fill_color = self.default_key_color
 
             painter.setBrush(QBrush(fill_color))
 
-            # Border
+            # Border: illuminated with blue LED accent based on brightness
             if k == self.selected_key:
                 painter.setPen(QPen(self.selected_border_color, 2.5))
             else:
-                painter.setPen(QPen(self.border_color, 1.2))
+                if self.brightness > 0:
+                    border_alpha = int(35 + 38 * self.brightness)
+                    painter.setPen(QPen(QColor(0, 150, 255, border_alpha), 1.2))
+                else:
+                    painter.setPen(QPen(QColor(55, 58, 68), 1.0))
 
             painter.drawRoundedRect(key_rect, 5.0, 5.0)
 
-            # Key label
-            # If the fill color is bright, use dark text
-            luminance = fill_color.red() * 0.299 + fill_color.green() * 0.587 + fill_color.blue() * 0.114
-            label_color = QColor(20, 20, 20) if luminance > 140 else self.text_color
+            # Key label (shining with blue LED illumination)
+            if self.brightness == 0:
+                label_color = QColor(85, 90, 100)
+            elif self.brightness <= 2:
+                label_color = QColor(0, 180, 255, 190)
+            else:
+                label_color = QColor(140, 230, 255, 245)
+
             painter.setPen(QPen(label_color))
             painter.drawText(key_rect, Qt.AlignmentFlag.AlignCenter, k.desc)
 

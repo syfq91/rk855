@@ -9,12 +9,12 @@ Reverse-engineered from the original vendor installer (`GamingForceZ-RK68-Setup-
 ## Features
 
 - **No Root Required**: Includes udev rules granting unprivileged access to the keyboard's raw HID interface.
-- **Lighting Controls**: Change backlight effects (Wave, Static, Breathing, Ripple, Rainbow, Reactive, Neon, Off), animation speed (1–5), LED brightness (0–5), and custom RGB hex colors.
+- **Single-Color Blue LED Backlight**: Tailored for the monochrome Ice Blue LED variant of the RK68 / RK855. Supports effects (Wave, Static, Breathing, Ripple, Reactive, Off), animation speed (1–5), and LED brightness levels (0–5).
 - **Key Remapping**: Remap any of the 68 physical keys (e.g. swap CapsLock and Control, map Fn keys, multimedia keys).
 - **Profile Management**: Save and switch named profiles stored as human-readable JSON files in `~/.config/rk68/`.
 - **Dual Interface**:
   - **`rk68` / `rk68-cli`**: Fast, scriptable command-line interface.
-  - **`rk68-gui`**: Modern PyQt6 graphical interface with a live interactive 68-key visual layout and color picker.
+  - **`rk68-gui`**: Modern PyQt6 graphical interface with a live interactive 68-key visual layout and authentic blue LED illumination preview.
 - **Interactive Key Switch Tester**: Dedicated 68-key switch actuation tester with live pressed/tested state rendering, progress stats, scancode inspector, keystroke history, and audio feedback.
 
 ---
@@ -68,14 +68,16 @@ chmod +x install.sh
 rk68 info
 ```
 
-### Backlight & RGB Lighting
+### Backlight & Blue LED Controls
 ```bash
-# Set Wave effect with custom speed and brightness
+# Set Wave effect with custom animation speed and brightness (0-5)
 rk68 light --mode wave --speed 4 --brightness 5
 
-# Set Static single color (hex or named color)
-rk68 light --mode static --color "#FF5500" --brightness 4
-rk68 light --mode breathing --color "cyan" --speed 2
+# Set Solid constant Blue illumination
+rk68 light --mode static --brightness 4
+
+# Set Breathing pulse
+rk68 light --mode breathing --speed 2 --brightness 3
 
 # Turn backlight off
 rk68 light --mode off
@@ -128,9 +130,10 @@ rk68-gui --tester
 ```
 The GUI provides two organized workspaces:
 1. **🎛️ Lighting & Remap**:
-   - **Click any keycap** to inspect its scancode, assign an individual RGB color, or remap its function.
-   - **Sliders & Color Wheel** provide live adjustment of lighting effects.
-   - **Profiles Dropdown** allows instant switching between saved configurations.
+   - **Click any keycap** to inspect its scancode, view key details, or remap its function.
+   - **Lighting Sliders**: Adjust animation speed (1-5) and blue LED brightness (0-5).
+   - **Monochrome Hardware Status**: Confirms fixed Single-Color Ice Blue LED hardware mode.
+   - **Profiles Dropdown**: Allows instant switching between saved configurations.
 2. **⌨️ Key Switch Tester**:
    - **Full 68-key actuation matrix**: Keys turn vibrant cyan while pressed and persist in emerald green once actuated.
    - **Live Keystroke Inspector**: Displays key name, USB scancode, event state, and hardware scancode.

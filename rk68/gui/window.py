@@ -2,7 +2,12 @@
 
 from typing import Optional
 from ..config import ConfigManager, KeyboardProfile
-from ..constants import LightingMode
+from ..constants import (
+    LightingMode,
+    SINGLE_COLOR_LIGHTING_MODES,
+    DEFAULT_BACKLIGHT_COLOR,
+    DEFAULT_BACKLIGHT_RGB,
+)
 from ..device import RK68Device, MockRK68Device
 from ..layout import find_key, KEY_DEFINITIONS
 from .keyboard_widget import KeyboardCanvas, PYQT_AVAILABLE
@@ -128,15 +133,26 @@ class RK68MainWindow(QMainWindow):
         bottom_layout = QHBoxLayout()
 
         # Lighting Box
-        light_box = QGroupBox("Backlight & RGB Effects")
+        light_box = QGroupBox("Backlight & Blue LED Effects (Monochrome)")
         light_layout = QVBoxLayout(light_box)
 
         # Mode
         mode_row = QHBoxLayout()
         mode_row.addWidget(QLabel("Effect Mode:"))
         self.mode_combo = QComboBox()
-        for mode in LightingMode:
-            self.mode_combo.addItem(mode.name.replace("_", " ").title(), mode)
+
+        mode_labels = {
+            LightingMode.STATIC: "Static (Solid Blue)",
+            LightingMode.BREATHING: "Breathing (Pulse)",
+            LightingMode.WAVE: "Wave (Brightness Wave)",
+            LightingMode.RIPPLE: "Ripple (Actuation Ripple)",
+            LightingMode.REACTIVE: "Reactive (Keypress Glow)",
+            LightingMode.OFF: "Backlight Off",
+        }
+        for mode in SINGLE_COLOR_LIGHTING_MODES:
+            label = mode_labels.get(mode, mode.name.replace("_", " ").title())
+            self.mode_combo.addItem(label, mode)
+
         self.mode_combo.currentIndexChanged.connect(self._on_lighting_changed)
         mode_row.addWidget(self.mode_combo)
         light_layout.addLayout(mode_row)
@@ -165,15 +181,23 @@ class RK68MainWindow(QMainWindow):
         speed_row.addWidget(self.speed_val_label)
         light_layout.addLayout(speed_row)
 
-        # Color
-        color_row = QHBoxLayout()
-        color_row.addWidget(QLabel("Backlight Color:"))
-        self.color_btn = QPushButton()
-        self.color_btn.setFixedHeight(26)
-        self.color_btn.clicked.connect(self._pick_color)
-        self._update_color_button()
-        color_row.addWidget(self.color_btn)
-        light_layout.addLayout(color_row)
+        # Hardware LED Specification Badge
+        led_row = QHBoxLayout()
+        led_row.addWidget(QLabel("Hardware LED:"))
+        led_badge = QLabel("🔵 Monochrome Ice Blue (0x00A8FF)")
+        led_badge.setStyleSheet("""
+            QLabel {
+                color: #80d8ff;
+                font-weight: bold;
+                background-color: #102a45;
+                border: 1px solid #0091ea;
+                border-radius: 4px;
+                padding: 4px 8px;
+            }
+        """)
+        led_row.addWidget(led_badge)
+        led_row.addStretch()
+        light_layout.addLayout(led_row)
 
         bottom_layout.addWidget(light_box, stretch=3)
 
@@ -196,9 +220,9 @@ class RK68MainWindow(QMainWindow):
         assign_remap_btn.clicked.connect(self._assign_remap)
         key_btn_row.addWidget(assign_remap_btn)
 
-        color_key_btn = QPushButton("Color This Key")
-        color_key_btn.clicked.connect(self._color_selected_key)
-        key_btn_row.addWidget(color_key_btn)
+        clear_remap_btn = QPushButton("Clear Remap")
+        clear_remap_btn.clicked.connect(self._clear_remap)
+        key_btn_row.addWidget(clear_remap_btn)
 
         key_layout.addLayout(key_btn_row)
         key_layout.addStretch()
@@ -268,36 +292,20 @@ class RK68MainWindow(QMainWindow):
         self.bright_val_label.setText(str(profile.brightness))
         self.speed_slider.setValue(profile.speed)
         self.speed_val_label.setText(str(profile.speed))
-        self.current_color = QColor(profile.color)
-        self._update_color_button()
-        self.keyboard_canvas.set_all_colors(
-            self.current_color.red(), self.current_color.green(), self.current_color.blue()
-        )
+        self.current_color = QColor(DEFAULT_BACKLIGHT_COLOR)
+        self.keyboard_canvas.set_brightness(profile.brightness)
 
     def _update_color_button(self):
-        hex_code = self.current_color.name()
-        self.color_btn.setText(hex_code)
-        self.color_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {hex_code};
-                color: {'#000000' if self.current_color.lightness() > 140 else '#FFFFFF'};
-                font-weight: bold;
-                border: 1px solid #ffffff;
-            }}
-        """)
+        pass
 
     def _pick_color(self):
-        color = QColorDialog.getColor(self.current_color, self, "Select RK68 Backlight Color")
-        if color.isValid():
-            self.current_color = color
-            self._update_color_button()
-            self._on_lighting_changed()
+        pass
 
     def _on_lighting_changed(self):
-        self.bright_val_label.setText(str(self.bright_slider.value()))
+        bright = self.bright_slider.value()
+        self.bright_val_label.setText(str(bright))
         self.speed_val_label.setText(str(self.speed_slider.value()))
-        r, g, b = self.current_color.red(), self.current_color.green(), self.current_color.blue()
-        self.keyboard_canvas.set_all_colors(r, g, b)
+        self.keyboard_canvas.set_brightness(bright)
 
     def _on_key_selected(self, key_def):
         self.key_info_label.setText(
@@ -321,15 +329,22 @@ class RK68MainWindow(QMainWindow):
             self, "Key Remapped", f"Key '{selected.desc}' will be remapped to '{target}' on Apply."
         )
 
-    def _color_selected_key(self):
+    def _clear_remap(self):
         selected = self.keyboard_canvas.selected_key
         if not selected:
             QMessageBox.warning(self, "No Key Selected", "Please select a key on the keyboard canvas first.")
             return
-        color = QColorDialog.getColor(self.current_color, self, f"Select Color for Key '{selected.desc}'")
-        if color.isValid():
-            self.keyboard_canvas.set_key_color(selected.code, color.red(), color.green(), color.blue())
-            self.current_profile.custom_rgb[selected.name] = color.name()
+        if selected.name in self.current_profile.key_remaps:
+            del self.current_profile.key_remaps[selected.name]
+            self.remap_input.clear()
+            QMessageBox.information(
+                self, "Remap Cleared", f"Key '{selected.desc}' restored to factory default."
+            )
+        else:
+            self.remap_input.clear()
+
+    def _color_selected_key(self):
+        pass
 
     def _on_profile_changed(self, profile_name):
         if not profile_name:
@@ -341,7 +356,7 @@ class RK68MainWindow(QMainWindow):
         self.current_profile.lighting_mode = self.mode_combo.currentData().name.lower()
         self.current_profile.brightness = self.bright_slider.value()
         self.current_profile.speed = self.speed_slider.value()
-        self.current_profile.color = self.current_color.name()
+        self.current_profile.color = DEFAULT_BACKLIGHT_COLOR
         self.config_manager.save_profile(self.current_profile)
         QMessageBox.information(self, "Profile Saved", f"Profile '{self.current_profile.name}' saved successfully.")
 
@@ -362,7 +377,6 @@ class RK68MainWindow(QMainWindow):
         mode = self.mode_combo.currentData()
         speed = self.speed_slider.value()
         brightness = self.bright_slider.value()
-        r, g, b = self.current_color.red(), self.current_color.green(), self.current_color.blue()
 
         try:
             with self.device:
@@ -370,7 +384,7 @@ class RK68MainWindow(QMainWindow):
                     mode=mode,
                     speed=speed,
                     brightness=brightness,
-                    color_rgb=(r, g, b),
+                    color_rgb=DEFAULT_BACKLIGHT_RGB,
                     direction=self.current_profile.direction,
                 )
                 # Remaps

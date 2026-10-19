@@ -5,7 +5,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
-from .constants import LightingMode
+from .constants import LightingMode, DEFAULT_BACKLIGHT_COLOR
 
 
 @dataclass
@@ -15,7 +15,7 @@ class KeyboardProfile:
     lighting_mode: str = "wave"
     speed: int = 3
     brightness: int = 4
-    color: str = "#FF5500"
+    color: str = DEFAULT_BACKLIGHT_COLOR
     direction: int = 0
     key_remaps: Dict[str, str] = field(default_factory=dict)
     custom_rgb: Dict[str, str] = field(default_factory=dict)
@@ -30,7 +30,7 @@ class KeyboardProfile:
             lighting_mode=data.get("lighting_mode", "wave"),
             speed=data.get("speed", 3),
             brightness=data.get("brightness", 4),
-            color=data.get("color", "#FF5500"),
+            color=data.get("color", DEFAULT_BACKLIGHT_COLOR),
             direction=data.get("direction", 0),
             key_remaps=data.get("key_remaps", {}),
             custom_rgb=data.get("custom_rgb", {}),

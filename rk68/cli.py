@@ -4,7 +4,13 @@ import argparse
 import sys
 from typing import Optional
 from .config import ConfigManager, KeyboardProfile
-from .constants import LightingMode, VENDOR_ID, PRODUCT_ID
+from .constants import (
+    LightingMode,
+    VENDOR_ID,
+    PRODUCT_ID,
+    DEFAULT_BACKLIGHT_COLOR,
+    DEFAULT_BACKLIGHT_RGB,
+)
 from .device import RK68Device, MockRK68Device
 from .layout import find_key, KEY_DEFINITIONS
 
@@ -38,7 +44,8 @@ def parse_color(color_str: str) -> tuple:
 def cmd_info(args, dev: RK68Device):
     print(f"=== Royal Kludge RK68 Linux Driver ===")
     print(f"Target USB Hardware: VID 0x{VENDOR_ID:04X}, PID 0x{PRODUCT_ID:04X}")
-    print(f"Supported Keys: {len(KEY_DEFINITIONS)} physical keys in 68-key matrix\n")
+    print(f"Supported Keys: {len(KEY_DEFINITIONS)} physical keys in 68-key matrix")
+    print(f"LED Backlight: Single-Color Blue (Monochrome Hardware)\n")
 
     if args.mock:
         print("[MOCK MODE] Simulating connected device.")
@@ -64,7 +71,7 @@ def cmd_info(args, dev: RK68Device):
 
 def cmd_light(args, dev: RK68Device, cfg: ConfigManager):
     mode = LightingMode.from_string(args.mode)
-    color = parse_color(args.color) if args.color else (255, 255, 255)
+    color = parse_color(args.color) if args.color else DEFAULT_BACKLIGHT_RGB
     speed = args.speed
     brightness = args.brightness
     direction = args.direction
@@ -214,12 +221,12 @@ def create_parser() -> argparse.ArgumentParser:
     test_parser.add_argument("--mock", action="store_true", help="Run with mock device")
 
     # light
-    light_parser = subparsers.add_parser("light", help="Set RGB backlight mode and parameters")
+    light_parser = subparsers.add_parser("light", help="Set backlight mode and parameters (single-color blue LED)")
     light_parser.add_argument(
         "--mode",
         default="wave",
         choices=[m.name.lower() for m in LightingMode],
-        help="Lighting mode (default: wave)",
+        help="Lighting mode: wave, static, breathing, ripple, reactive, off",
     )
     light_parser.add_argument(
         "--speed", type=int, default=3, choices=range(1, 6), help="Animation speed 1-5"
@@ -228,7 +235,7 @@ def create_parser() -> argparse.ArgumentParser:
         "--brightness", type=int, default=3, choices=range(0, 6), help="Brightness 0-5"
     )
     light_parser.add_argument(
-        "--color", default="#FF5500", help="Color as hex (#RRGGBB) or name (red, blue, cyan, etc.)"
+        "--color", default=DEFAULT_BACKLIGHT_COLOR, help=f"Color as hex (default: {DEFAULT_BACKLIGHT_COLOR} for blue LED)"
     )
     light_parser.add_argument(
         "--direction", type=int, default=0, choices=[0, 1], help="Direction (0=left, 1=right)"

@@ -37,6 +37,21 @@ class LightingMode(IntEnum):
         raise ValueError(f"Unknown lighting mode: '{name}'. Available: {[m.name.lower() for m in cls]}")
 
 
+# Hardware LED specifications for single-color blue backlight RK68 / RK855
+DEFAULT_BACKLIGHT_COLOR = "#00A8FF"
+DEFAULT_BACKLIGHT_RGB = (0, 168, 255)
+
+# Animation modes compatible with single-color monochrome blue LEDs
+SINGLE_COLOR_LIGHTING_MODES = [
+    LightingMode.STATIC,
+    LightingMode.BREATHING,
+    LightingMode.WAVE,
+    LightingMode.RIPPLE,
+    LightingMode.REACTIVE,
+    LightingMode.OFF,
+]
+
+
 class CommandOpcode(IntEnum):
     """Firmware packet command opcodes."""
     SET_LIGHT_CONFIG = 0x04

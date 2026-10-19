@@ -20,6 +20,7 @@ class TestRK68Config(unittest.TestCase):
         self.assertEqual(profile.name, "default")
         self.assertEqual(profile.lighting_mode, "wave")
         self.assertEqual(profile.brightness, 4)
+        self.assertEqual(profile.color, "#00A8FF")
 
     def test_save_and_load_profile(self):
         profile = KeyboardProfile(

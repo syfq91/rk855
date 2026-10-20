@@ -159,10 +159,13 @@ def cmd_profile(args, dev: RK68Device, cfg: ConfigManager):
                 color_rgb=profile.get_color_rgb(),
                 direction=profile.direction,
             )
+            remap_dict = {}
             for k_name, sc_val in profile.key_remaps.items():
                 k_def = find_key(k_name)
                 if k_def:
-                    dev.remap_key(k_def.code, int(sc_val, 16))
+                    remap_dict[k_def.code] = int(sc_val, 16) if sc_val.startswith("0x") else int(sc_val)
+            if remap_dict:
+                dev.remap_keys(remap_dict)
         print(f"Success: Profile '{name}' loaded and applied.")
         return 0
 
@@ -222,11 +225,15 @@ def create_parser() -> argparse.ArgumentParser:
 
     # light
     light_parser = subparsers.add_parser("light", help="Set backlight mode and parameters (single-color blue LED)")
+    mode_choices = sorted(list(set(
+        [m.name.lower() for m in LightingMode] +
+        ["wave", "breathing", "ripple", "reactive", "rainbow", "solid", "singleon", "singleoff", "off"]
+    )))
     light_parser.add_argument(
         "--mode",
         default="wave",
-        choices=[m.name.lower() for m in LightingMode],
-        help="Lighting mode: wave, static, breathing, ripple, reactive, off",
+        choices=mode_choices,
+        help="Lighting mode (e.g. wave, static, breathing, ripple, reactive, off)",
     )
     light_parser.add_argument(
         "--speed", type=int, default=3, choices=range(1, 6), help="Animation speed 1-5"

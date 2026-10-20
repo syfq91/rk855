@@ -146,9 +146,13 @@ class RK68MainWindow(QMainWindow):
 
         mode_labels = {
             LightingMode.STATIC: "Static (Solid Blue)",
+            LightingMode.BREATH: "Breathing (Pulse)",
             LightingMode.BREATHING: "Breathing (Pulse)",
+            LightingMode.SCROLLING: "Wave (Brightness Wave)",
             LightingMode.WAVE: "Wave (Brightness Wave)",
+            LightingMode.RIPPLES: "Ripple (Actuation Ripple)",
             LightingMode.RIPPLE: "Ripple (Actuation Ripple)",
+            LightingMode.SINGLE_ON: "Reactive (Keypress Glow)",
             LightingMode.REACTIVE: "Reactive (Keypress Glow)",
             LightingMode.OFF: "Backlight Off",
         }
@@ -523,6 +527,7 @@ class RK68MainWindow(QMainWindow):
                     direction=self.current_profile.direction,
                 )
                 # Remaps
+                remap_dict = {}
                 for k_name, scancode_str in self.current_profile.key_remaps.items():
                     k_def = find_key(k_name)
                     if k_def:
@@ -531,9 +536,11 @@ class RK68MainWindow(QMainWindow):
                             target_sc = target_k.code if target_k else (
                                 int(scancode_str, 16) if scancode_str.startswith("0x") else int(scancode_str)
                             )
-                            self.device.remap_key(k_def.code, target_sc)
+                            remap_dict[k_def.code] = target_sc
                         except ValueError:
                             pass
+                if remap_dict:
+                    self.device.remap_keys(remap_dict)
             QMessageBox.information(self, "Success", "Configuration sent successfully to RK68 keyboard!")
         except Exception as e:
             QMessageBox.critical(

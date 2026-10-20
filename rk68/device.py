@@ -1,13 +1,22 @@
 """Hardware device communication layer for Royal Kludge RK68 via HIDAPI."""
 
 import logging
-from typing import Dict, List, Optional, Tuple
-from .constants import VENDOR_ID, PRODUCT_ID, LightingMode
+import time
+from typing import Dict, List, Optional, Tuple, Union
+from .constants import (
+    VENDOR_ID,
+    PRODUCT_ID,
+    LightingMode,
+    DEFAULT_BACKLIGHT_RGB,
+)
 from .protocol import (
     build_lighting_packet,
+    build_full_lighting_transaction,
     build_key_remap_packet,
+    build_key_remap_transaction,
     build_custom_rgb_frame,
     build_reset_packet,
+    build_reset_transaction,
 )
 
 logger = logging.getLogger("rk68.device")
@@ -28,6 +37,7 @@ class RK68Device:
         self.product_id = product_id
         self._device: Optional[object] = None
         self._is_open = False
+        self._active_remaps: Dict[int, int] = {}
 
     @classmethod
     def enumerate_devices(cls) -> List[Dict]:
@@ -35,16 +45,19 @@ class RK68Device:
         if not HID_AVAILABLE:
             return []
         devices = []
-        for dev in hid.enumerate(VENDOR_ID, PRODUCT_ID):
-            devices.append({
-                "path": dev.get("path"),
-                "vendor_id": dev.get("vendor_id"),
-                "product_id": dev.get("product_id"),
-                "serial_number": dev.get("serial_number"),
-                "manufacturer_string": dev.get("manufacturer_string"),
-                "product_string": dev.get("product_string"),
-                "interface_number": dev.get("interface_number"),
-            })
+        try:
+            for dev in hid.enumerate(VENDOR_ID, PRODUCT_ID):
+                devices.append({
+                    "path": dev.get("path"),
+                    "vendor_id": dev.get("vendor_id"),
+                    "product_id": dev.get("product_id"),
+                    "serial_number": dev.get("serial_number"),
+                    "manufacturer_string": dev.get("manufacturer_string"),
+                    "product_string": dev.get("product_string"),
+                    "interface_number": dev.get("interface_number"),
+                })
+        except Exception as e:
+            logger.warning("Error enumerating HID devices: %s", e)
         return devices
 
     @property
@@ -91,45 +104,71 @@ class RK68Device:
         self._is_open = False
 
     def send_feature_report(self, report_bytes: bytes) -> int:
-        """Send a 65-byte feature report to the keyboard."""
+        """Send a single 65-byte feature report to the keyboard."""
         if not self.is_connected:
             raise ConnectionError("Device is not connected. Call open() first.")
         
-        # hidapi send_feature_report expects raw bytes starting with report ID
         result = self._device.send_feature_report(report_bytes)
         if result < 0:
             raise IOError("Failed to send feature report to RK68 keyboard")
         return result
 
+    def send_reports(self, reports: List[bytes], delay_ms: float = 2.0) -> int:
+        """Send a sequence of feature reports (transaction) with optional inter-packet delay."""
+        total = 0
+        for report in reports:
+            total += self.send_feature_report(report)
+            if delay_ms > 0:
+                time.sleep(delay_ms / 1000.0)
+        return total
+
     def set_lighting(
         self,
-        mode: LightingMode,
+        mode: Union[LightingMode, int],
         speed: int = 3,
         brightness: int = 3,
-        color_rgb: Tuple[int, int, int] = (255, 255, 255),
+        color_rgb: Tuple[int, int, int] = DEFAULT_BACKLIGHT_RGB,
         direction: int = 0,
     ) -> bool:
-        """Update the keyboard backlight mode and settings."""
-        packet = build_lighting_packet(
+        """Update keyboard backlight mode and settings using the full verified transaction.
+
+        Transmits:
+          1. Preamble (0x04 0x18)
+          2. Lighting bank descriptor header (0x04 0x13)
+          3. Preset lighting packet (0x04 0x11)
+          4. 19 lighting bank chunk packets (1216 bytes with 0x55AA sync)
+          5. Commit (0x04 0x02)
+          6. Flush (0x04 0xF0)
+        """
+        packets = build_full_lighting_transaction(
             mode=mode,
             speed=speed,
             brightness=brightness,
             color_rgb=color_rgb,
             direction=direction,
         )
-        self.send_feature_report(packet)
+        self.send_reports(packets)
         return True
 
     def remap_key(self, key_code: int, target_scancode: int) -> bool:
-        """Remap a physical key scancode."""
-        packet = build_key_remap_packet(key_code, target_scancode)
-        self.send_feature_report(packet)
+        """Remap a physical key scancode and commit to keyboard onboard memory."""
+        self._active_remaps[key_code] = target_scancode
+        packets = build_key_remap_transaction(self._active_remaps)
+        self.send_reports(packets)
+        return True
+
+    def remap_keys(self, remaps: Dict[int, int]) -> bool:
+        """Batch remap multiple physical keys in a single atomic hardware transaction."""
+        self._active_remaps.update(remaps)
+        packets = build_key_remap_transaction(self._active_remaps)
+        self.send_reports(packets)
         return True
 
     def reset_defaults(self) -> bool:
         """Reset keyboard onboard configuration to factory defaults."""
-        packet = build_reset_packet()
-        self.send_feature_report(packet)
+        self._active_remaps.clear()
+        packets = build_reset_transaction()
+        self.send_reports(packets)
         return True
 
     def __enter__(self):
@@ -166,3 +205,9 @@ class MockRK68Device(RK68Device):
             raise ValueError(f"Feature report must be exactly 65 bytes, got {len(report_bytes)}")
         self.sent_reports.append(report_bytes)
         return len(report_bytes)
+
+    def send_reports(self, reports: List[bytes], delay_ms: float = 0.0) -> int:
+        total = 0
+        for report in reports:
+            total += self.send_feature_report(report)
+        return total

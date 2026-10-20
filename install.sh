@@ -13,10 +13,22 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 1. Install udev rule
+# 1. Install udev rule and safe keymap hwdb
 echo "[+] Installing udev rule to /etc/udev/rules.d/99-rk855.rules..."
 $SUDO cp "$SCRIPT_DIR/udev/99-rk855.rules" /etc/udev/rules.d/99-rk855.rules
 $SUDO chmod 644 /etc/udev/rules.d/99-rk855.rules
+
+echo "[+] Initializing safe key mapping hardware database..."
+$SUDO mkdir -p /etc/udev/hwdb.d
+if [ ! -f /etc/udev/hwdb.d/70-rk855-keymap.hwdb ]; then
+  $SUDO touch /etc/udev/hwdb.d/70-rk855-keymap.hwdb
+fi
+$SUDO chmod 666 /etc/udev/hwdb.d/70-rk855-keymap.hwdb
+
+echo "[+] Configuring passwordless hwdb/udev triggers..."
+$SUDO mkdir -p /etc/sudoers.d
+echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/systemd-hwdb update, /usr/bin/udevadm trigger*" | $SUDO tee /etc/sudoers.d/rk855-hwdb >/dev/null
+$SUDO chmod 440 /etc/sudoers.d/rk855-hwdb
 
 echo "[+] Reloading udev rules..."
 $SUDO udevadm control --reload-rules

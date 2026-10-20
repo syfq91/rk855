@@ -25,6 +25,7 @@ dist/
 env/
 venv/
 ENV/
+uv.lock
 
 # IDEs
 .vscode/

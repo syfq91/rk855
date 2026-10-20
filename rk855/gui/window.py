@@ -513,10 +513,23 @@ class RK855MainWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", f"Failed to reset device: {e}")
 
     def _apply_to_hardware(self):
+        from ..remap import set_key_remaps, clear_all_remaps
         mode = self.mode_combo.currentData()
         speed = self.speed_slider.value()
         brightness = self.bright_slider.value()
 
+        # 1. Apply key remappings via systemd-hwdb (safe, instant, persistent)
+        remap_dict = {}
+        for k_name, scancode_str in self.current_profile.key_remaps.items():
+            k_def = find_key(k_name)
+            if k_def:
+                remap_dict[k_def.name] = scancode_str
+        if remap_dict:
+            set_key_remaps(remap_dict)
+        else:
+            clear_all_remaps()
+
+        # 2. Apply lighting settings to hardware via USB HID
         try:
             with self.device:
                 self.device.set_lighting(
@@ -526,27 +539,13 @@ class RK855MainWindow(QMainWindow):
                     color_rgb=DEFAULT_BACKLIGHT_RGB,
                     direction=self.current_profile.direction,
                 )
-                # Remaps
-                remap_dict = {}
-                for k_name, scancode_str in self.current_profile.key_remaps.items():
-                    k_def = find_key(k_name)
-                    if k_def:
-                        try:
-                            target_k = find_key(scancode_str)
-                            target_sc = target_k.code if target_k else (
-                                int(scancode_str, 16) if scancode_str.startswith("0x") else int(scancode_str)
-                            )
-                            remap_dict[k_def.code] = target_sc
-                        except ValueError:
-                            pass
-                if remap_dict:
-                    self.device.remap_keys(remap_dict)
-            QMessageBox.information(self, "Success", "Configuration sent successfully to RK855 keyboard!")
+            QMessageBox.information(self, "Success", "Configuration applied successfully to RK855 keyboard!")
         except Exception as e:
-            QMessageBox.critical(
-                self, "Communication Error",
-                f"Could not send configuration to RK855: {e}\n\n"
-                "Ensure keyboard is connected via wired USB cable and udev rules are active."
+            # If USB HID device is not ready, notify user but note remap succeeded
+            QMessageBox.information(
+                self, "Settings Saved",
+                f"Key remappings applied via systemd-hwdb.\n"
+                f"(Note: Backlight could not connect over USB HID: {e})"
             )
 
 

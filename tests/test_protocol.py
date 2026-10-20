@@ -246,13 +246,12 @@ class TestRK855Protocol(unittest.TestCase):
 
     def test_build_reset_transaction(self):
         tx = build_reset_transaction()
-        # Reset includes remap reset under 0x06 and lighting reset under 0x04
-        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY_KEY_REMAP)
+        # Safe lighting reset under universal 0x04 primary opcode
+        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY)
         self.assertEqual(tx[0][2], CommandOpcode.SUB_PREAMBLE)
-        # Ends with lighting commit and flush under 0x04
-        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY_LIGHTING)
+        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY)
         self.assertEqual(tx[-2][2], CommandOpcode.SUB_COMMIT)
-        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY_LIGHTING)
+        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY)
         self.assertEqual(tx[-1][2], CommandOpcode.SUB_FLUSH)
 
 

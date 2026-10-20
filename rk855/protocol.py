@@ -378,12 +378,9 @@ def build_reset_packet() -> bytes:
 
 
 def build_reset_transaction() -> List[bytes]:
-    """Build a complete reset to factory defaults transaction for both lighting and remap."""
+    """Build a complete reset to factory defaults transaction for the Sonix MCU."""
     packets = []
-    # 1. Reset all key mappings back to default 68-key matrix under 0x06
-    packets.extend(build_key_remap_transaction({}))
-    # 2. Reset lighting to default static blue lighting bank under 0x04
-    packets.append(build_preamble_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
+    packets.append(build_preamble_packet())
     packets.extend(build_lighting_bank_packets(
         active_mode=LightingMode.STATIC,
         speed=3,
@@ -391,6 +388,6 @@ def build_reset_transaction() -> List[bytes]:
         color_rgb=DEFAULT_BACKLIGHT_RGB,
         direction=0,
     ))
-    packets.append(build_commit_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
-    packets.append(build_flush_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
+    packets.append(build_commit_packet())
+    packets.append(build_flush_packet())
     return packets

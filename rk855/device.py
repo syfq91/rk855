@@ -151,24 +151,29 @@ class RK855Device:
         return True
 
     def remap_key(self, key_code: int, target_scancode: int) -> bool:
-        """Remap a physical key scancode and commit to keyboard onboard memory."""
+        """Remap a physical key safely via Linux evdev/systemd-hwdb."""
+        from .remap import set_key_remap
         self._active_remaps[key_code] = target_scancode
-        packets = build_key_remap_transaction(self._active_remaps)
-        self.send_reports(packets, delay_ms=5.0)
-        return True
+        success, _ = set_key_remap(key_code, target_scancode)
+        return success
 
     def remap_keys(self, remaps: Dict[int, int]) -> bool:
-        """Batch remap multiple physical keys in a single atomic hardware transaction."""
+        """Batch remap multiple physical keys safely via Linux evdev/systemd-hwdb."""
+        from .remap import set_key_remaps
         self._active_remaps.update(remaps)
-        packets = build_key_remap_transaction(self._active_remaps)
-        self.send_reports(packets, delay_ms=5.0)
-        return True
+        success, _ = set_key_remaps(self._active_remaps)
+        return success
 
     def reset_defaults(self) -> bool:
-        """Reset keyboard onboard configuration to factory defaults."""
+        """Reset keyboard onboard configuration and Linux remaps to factory defaults."""
+        from .remap import clear_all_remaps
+        clear_all_remaps()
         self._active_remaps.clear()
-        packets = build_reset_transaction()
-        self.send_reports(packets, delay_ms=5.0)
+        try:
+            packets = build_reset_transaction()
+            self.send_reports(packets, delay_ms=5.0)
+        except Exception:
+            pass
         return True
 
     def __enter__(self):

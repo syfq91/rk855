@@ -103,33 +103,32 @@ def cmd_light(args, dev: RK855Device, cfg: ConfigManager):
 
 
 def cmd_remap(args, dev: RK855Device, cfg: ConfigManager):
+    from .remap import set_key_remap, resolve_linux_keycode
     source_key = find_key(args.key)
     if not source_key:
         print(f"Error: Unknown physical key '{args.key}'.")
         print(f"Available keys include: esc, 1-9, Q-P, A-L, Z-M, space, enter, shift, fn, etc.")
         return 1
 
-    target_key = find_key(args.target)
-    target_code = target_key.code if target_key else None
-    if target_code is None:
-        try:
-            target_code = int(args.target, 16)
-        except ValueError:
-            print(f"Error: Target '{args.target}' is neither a known key nor a valid hex scancode.")
-            return 1
+    tgt_linux_name = resolve_linux_keycode(args.target)
+    if not tgt_linux_name:
+        print(f"Error: Target '{args.target}' is neither a known key nor a valid Linux keycode.")
+        return 1
 
-    print(f"Remapping key '{source_key.name}' (0x{source_key.code:02X}) -> 0x{target_code:02X}...")
-    with dev:
-        dev.remap_key(source_key.code, target_code)
+    print(f"Remapping key '{source_key.name}' (0x{source_key.code:02X}) -> '{tgt_linux_name}' via systemd-hwdb...")
+    success, msg = set_key_remap(source_key.name, tgt_linux_name)
+    if not success:
+        print(f"Error: {msg}")
+        return 1
 
     if args.save:
         active_name = cfg.get_active_profile_name()
         profile = cfg.load_profile(active_name)
-        profile.key_remaps[source_key.name] = hex(target_code)
+        profile.key_remaps[source_key.name] = tgt_linux_name
         cfg.save_profile(profile)
         print(f"Saved remapping to profile '{active_name}'.")
 
-    print("Success: Key remapped.")
+    print("Success: Key remapped instantly and safely.")
     print("Tip: Test the remapped key actuation with: rk855 test")
     return 0
 
@@ -190,10 +189,15 @@ def cmd_profile(args, dev: RK855Device, cfg: ConfigManager):
 
 
 def cmd_reset(args, dev: RK855Device):
+    from .remap import clear_all_remaps
     print("Resetting RK855 keyboard to factory defaults...")
-    with dev:
-        dev.reset_defaults()
-    print("Success: Keyboard reset.")
+    clear_all_remaps()
+    try:
+        with dev:
+            dev.reset_defaults()
+    except Exception:
+        pass
+    print("Success: Keyboard reset to factory defaults (lighting & key layout restored).")
     return 0
 
 

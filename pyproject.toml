@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rk68"
+name = "rk855"
 version = "1.0.0"
-description = "Native Linux configuration driver and GUI for Royal Kludge RK68 mechanical keyboards (0c45:8018)"
+description = "Native Linux configuration driver and GUI for Royal Kludge RK855 mechanical keyboards (0c45:8018)"
 readme = "README.md"
 authors = [{ name = "Royal Kludge Linux Community" }]
 license = { text = "MIT" }
 requires-python = ">=3.8"
-keywords = ["keyboard", "rgb", "royal-kludge", "rk68", "linux", "sonix", "hidapi"]
+keywords = ["keyboard", "rgb", "royal-kludge", "rk855", "rk68", "linux", "sonix", "hidapi"]
 dependencies = [
     "hidapi>=0.14.0",
 ]
@@ -24,9 +24,12 @@ test = [
 ]
 
 [project.scripts]
-rk68 = "rk68.cli:main"
-rk68-cli = "rk68.cli:main"
-rk68-gui = "rk68.gui.main:main"
+rk855 = "rk855.cli:main"
+rk855-cli = "rk855.cli:main"
+rk855-gui = "rk855.gui.main:main"
+rk68 = "rk855.cli:main"
+rk68-cli = "rk855.cli:main"
+rk68-gui = "rk855.gui.main:main"
 
 [tool.setuptools.packages.find]
-include = ["rk68*"]
+include = ["rk855*"]

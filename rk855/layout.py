@@ -1,4 +1,4 @@
-"""Layout definitions for the 68-key RK68 / RK855 keyboard matrix."""
+"""Layout definitions for the 68-key RK855 / RK68 keyboard matrix."""
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional

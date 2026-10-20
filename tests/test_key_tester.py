@@ -1,9 +1,9 @@
-"""Unit tests for RK68 Key Switch Tester and key mapping resolution."""
+"""Unit tests for RK855 Key Switch Tester and key mapping resolution."""
 
 import unittest
-from rk68.gui.key_tester import KeyMapper, KeyTesterCanvas, KeyTesterWidget, PYQT_AVAILABLE
-from rk68.layout import KEY_DEFINITIONS, CODE_TO_KEY
-from rk68.cli import create_parser
+from rk855.gui.key_tester import KeyMapper, KeyTesterCanvas, KeyTesterWidget, PYQT_AVAILABLE
+from rk855.layout import KEY_DEFINITIONS, CODE_TO_KEY
+from rk855.cli import create_parser
 
 if PYQT_AVAILABLE:
     from PyQt6.QtCore import Qt
@@ -169,7 +169,7 @@ class TestKeyPaletteDialog(unittest.TestCase):
 
     @unittest.skipUnless(PYQT_AVAILABLE, "PyQt6 is required for dialog tests")
     def test_palette_dialog_creation(self):
-        from rk68.gui.remap_dialog import KeyPaletteDialog
+        from rk855.gui.remap_dialog import KeyPaletteDialog
         dlg = KeyPaletteDialog()
         self.assertIsNotNone(dlg)
 
@@ -178,17 +178,17 @@ class TestMainWindowTabs(unittest.TestCase):
 
     @unittest.skipUnless(PYQT_AVAILABLE, "PyQt6 is required for window tests")
     def test_window_tabs_split(self):
-        from rk68.gui.window import RK68MainWindow
-        from rk68.device import MockRK68Device
-        from rk68.config import ConfigManager
+        from rk855.gui.window import RK855MainWindow
+        from rk855.device import MockRK855Device
+        from rk855.config import ConfigManager
         import tempfile
         import os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             cfg = ConfigManager(config_dir=tmpdir)
-            dev = MockRK68Device()
+            dev = MockRK855Device()
 
-            win = RK68MainWindow(device=dev, config_manager=cfg, start_tab="lighting")
+            win = RK855MainWindow(device=dev, config_manager=cfg, start_tab="lighting")
             self.assertEqual(win.tabs.count(), 3)
             self.assertIn("Lighting", win.tabs.tabText(0))
             self.assertIn("Remapping", win.tabs.tabText(1))
@@ -196,11 +196,11 @@ class TestMainWindowTabs(unittest.TestCase):
             self.assertEqual(win.tabs.currentIndex(), 0)
 
             # Test start_tab="remap"
-            win_remap = RK68MainWindow(device=dev, config_manager=cfg, start_tab="remap")
+            win_remap = RK855MainWindow(device=dev, config_manager=cfg, start_tab="remap")
             self.assertEqual(win_remap.tabs.currentIndex(), 1)
 
             # Test start_tab="tester"
-            win_tester = RK68MainWindow(device=dev, config_manager=cfg, start_tab="tester")
+            win_tester = RK855MainWindow(device=dev, config_manager=cfg, start_tab="tester")
             self.assertEqual(win_tester.tabs.currentIndex(), 2)
 
             # Test key selection updates label and remap canvas

@@ -1,1 +1,1 @@
-"""Test suite for RK68 Linux utility."""
+"""Test suite for RK855 Linux utility."""

@@ -1,4 +1,4 @@
-"""Constants and definitions for the Royal Kludge RK68 Linux driver."""
+"""Constants and definitions for the Royal Kludge RK855 Linux driver."""
 
 from enum import IntEnum
 
@@ -17,7 +17,7 @@ LAYOUT_CANVAS_HEIGHT = 274
 
 
 class LightingMode(IntEnum):
-    """Backlight animation modes supported by the RK68 Sonix MCU firmware.
+    """Backlight animation modes supported by the RK855 / RK68 Sonix MCU firmware.
     
     Firmware mode IDs correspond directly to the OEM string table (1033.lan IDs 200..219):
       0: Static, 1: SingleOn, 2: SingleOff, 3: Glittering, 4: Falling,
@@ -104,7 +104,7 @@ class LightingMode(IntEnum):
         )
 
 
-# Hardware LED specifications for single-color blue backlight RK68 / RK855
+# Hardware LED specifications for single-color blue backlight RK855 / RK68
 DEFAULT_BACKLIGHT_COLOR = "#00A8FF"
 DEFAULT_BACKLIGHT_RGB = (0, 168, 255)
 

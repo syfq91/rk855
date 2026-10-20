@@ -1,10 +1,10 @@
 """Unit tests for the 68-key matrix layout."""
 
 import unittest
-from rk68.layout import KEY_DEFINITIONS, find_key, KeyDefinition
+from rk855.layout import KEY_DEFINITIONS, find_key, KeyDefinition
 
 
-class TestRK68Layout(unittest.TestCase):
+class TestRK855Layout(unittest.TestCase):
 
     def test_key_count(self):
         # Must match the exact 68-key layout from KeyboardLayout.xml
@@ -46,7 +46,7 @@ class TestRK68Layout(unittest.TestCase):
         self.assertIsNone(find_key("nonexistent_key_12345"))
 
     def test_remap_targets_available(self):
-        from rk68.layout import REMAP_TARGETS
+        from rk855.layout import REMAP_TARGETS
         self.assertGreater(len(REMAP_TARGETS), 50)
 
         # F-keys

@@ -3,10 +3,10 @@
 import tempfile
 import unittest
 from pathlib import Path
-from rk68.config import ConfigManager, KeyboardProfile
+from rk855.config import ConfigManager, KeyboardProfile
 
 
-class TestRK68Config(unittest.TestCase):
+class TestRK855Config(unittest.TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()

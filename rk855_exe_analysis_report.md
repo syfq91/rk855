@@ -3,7 +3,7 @@
 **Date**: October 19, 2026  
 **Target File**: `GamingForceZ-RK68-Setup-1.0.1.1.exe`  
 **Extracted Primary Payload**: `DeviceDriver.exe`  
-**Target Hardware**: Royal Kludge RK68 (OEM / GamingForceZ RKW855) 68-Key Mechanical Keyboard  
+**Target Hardware**: Royal Kludge RK855 / RK68 (OEM / GamingForceZ RKW855) 68-Key Mechanical Keyboard  
 **Hardware MCU / VID:PID**: Sonix USB MCU (`0x0C45:0x8018`)  
 
 ---
@@ -113,7 +113,7 @@ sequenceDiagram
     actor User
     participant Driver as DeviceDriver.exe
     participant SetupAPI as Windows SetupAPI / HID
-    participant Sonix as RK68 Sonix MCU (0x0C45:0x8018)
+    participant Sonix as RK855 Sonix MCU (0x0C45:0x8018)
 
     User->>Driver: Select Lighting / Remap Key
     Driver->>SetupAPI: SetupDiGetClassDevsW(GUID_DEVINTERFACE_HID)
@@ -244,14 +244,14 @@ The firmware implements 20 lighting animation algorithms (parsed from string tab
 
 The Windows OEM software relies completely on Windows-only libraries (`hid.dll`, `SetupAPI.dll`, Win32 GDI+, ATL/MFC). To enable native operation on Linux, the reverse-engineered protocol and XML schemas were reimplemented in clean-room Python:
 
-| Component | Windows Original (`DeviceDriver.exe`) | Clean-Room Linux Rewrite (`rk68`) |
+| Component | Windows Original (`DeviceDriver.exe`) | Clean-Room Linux Rewrite (`rk855`) |
 | :--- | :--- | :--- |
 | **Transport** | Windows `hid.dll` (`HidD_SetFeature`) | `hidapi` (`device.send_feature_report`) |
-| **Permissions** | Administrator or standard Windows user | `udev/99-rk68.rules` (`uaccess` / `plugdev`) |
+| **Permissions** | Administrator or standard Windows user | `udev/99-rk855.rules` (`uaccess` / `plugdev`) |
 | **Architecture** | 32-bit x86 Win32 PE binary | Pure Python 3 (architecture-independent, x86/ARM/RISC-V) |
 | **GUI Framework** | MFC / ATL with proprietary `mui.dll` | Modern PyQt6 visual interactive configurator |
-| **CLI Control** | None (GUI-only) | Full headless command-line interface (`rk68`) |
-| **Configuration** | Windows Registry & local `.xml` | Standard Linux `~/.config/rk68/profiles.json` |
+| **CLI Control** | None (GUI-only) | Full headless command-line interface (`rk855`) |
+| **Configuration** | Windows Registry & local `.xml` | Standard Linux `~/.config/rk855/profiles.json` |
 
 ---
 

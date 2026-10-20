@@ -1,4 +1,4 @@
-"""USB HID Feature Report packet encoder for Sonix RK68 microcontroller.
+"""USB HID Feature Report packet encoder for Sonix RK855 microcontroller.
 
 Implements the reverse-engineered 65-byte protocol extracted directly from
 the OEM utility (DeviceDriver.exe, SHA-256 690e9b...):

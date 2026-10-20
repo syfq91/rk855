@@ -1,4 +1,4 @@
-"""Interactive Key Switch Tester for Royal Kludge RK68 / RK855."""
+"""Interactive Key Switch Tester for Royal Kludge RK855 / RK68."""
 
 from typing import Dict, List, Optional, Set, Tuple
 from ..constants import LAYOUT_CANVAS_WIDTH, LAYOUT_CANVAS_HEIGHT
@@ -26,9 +26,9 @@ except ImportError:
 
 
 class KeyMapper:
-    """Resolves Qt key events and Linux evdev scancodes to RK68 KeyDefinitions."""
+    """Resolves Qt key events and Linux evdev scancodes to RK855 KeyDefinitions."""
 
-    # Explicit mapping from Qt.Key constants to RK68 HID usage codes
+    # Explicit mapping from Qt.Key constants to RK855 HID usage codes
     QT_KEY_MAP: Dict[int, int] = {}
 
     @classmethod
@@ -140,7 +140,7 @@ class KeyMapper:
         native_scancode: int = 0,
         text: str = ""
     ) -> Optional[KeyDefinition]:
-        """Resolve a Qt key press event into an RK68 KeyDefinition."""
+        """Resolve a Qt key press event into an RK855 KeyDefinition."""
         cls._init_map()
 
         # 1. Modifiers with Left vs Right distinction via native scancode (Linux evdev / X11)
@@ -471,7 +471,7 @@ class KeyTesterWidget(QWidget):
         info_label = QLabel(
             "💡 Press keys on your keyboard to test switches. "
             "Keys illuminate cyan while pressed and turn green once registered. "
-            "(*Note: The Fn key is processed internally by RK68 firmware for onboard shortcuts and does not transmit an OS scancode.)"
+            "(*Note: The Fn key is processed internally by RK855 firmware for onboard shortcuts and does not transmit an OS scancode.)"
         )
         info_label.setWordWrap(True)
         info_label.setStyleSheet("color: #5c6370; font-size: 11px; font-style: italic; margin-top: 2px;")

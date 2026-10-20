@@ -1,4 +1,4 @@
-"""Command-line interface for controlling Royal Kludge RK68 on Linux."""
+"""Command-line interface for controlling Royal Kludge RK855 on Linux."""
 
 import argparse
 import sys
@@ -11,7 +11,7 @@ from .constants import (
     DEFAULT_BACKLIGHT_COLOR,
     DEFAULT_BACKLIGHT_RGB,
 )
-from .device import RK68Device, MockRK68Device
+from .device import RK855Device, MockRK855Device, RK68Device, MockRK68Device
 from .layout import find_key, KEY_DEFINITIONS
 
 
@@ -41,8 +41,8 @@ def parse_color(color_str: str) -> tuple:
     raise ValueError(f"Invalid color format: '{color_str}'. Use hex like '#FF5500' or names like 'red'.")
 
 
-def cmd_info(args, dev: RK68Device):
-    print(f"=== Royal Kludge RK68 Linux Driver ===")
+def cmd_info(args, dev: RK855Device):
+    print(f"=== Royal Kludge RK855 Linux Driver ===")
     print(f"Target USB Hardware: VID 0x{VENDOR_ID:04X}, PID 0x{PRODUCT_ID:04X}")
     print(f"Supported Keys: {len(KEY_DEFINITIONS)} physical keys in 68-key matrix")
     print(f"LED Backlight: Single-Color Blue (Monochrome Hardware)\n")
@@ -51,25 +51,25 @@ def cmd_info(args, dev: RK68Device):
         print("[MOCK MODE] Simulating connected device.")
         return 0
 
-    devices = RK68Device.enumerate_devices()
+    devices = RK855Device.enumerate_devices()
     if not devices:
-        print("Status: No RK68 keyboards detected on USB.")
+        print("Status: No RK855 keyboards detected on USB.")
         print("\nTroubleshooting:")
         print(" 1. Make sure keyboard is connected via USB-C cable (not wireless).")
-        print(" 2. Ensure udev rule is installed: /etc/udev/rules.d/99-rk68.rules")
+        print(" 2. Ensure udev rule is installed: /etc/udev/rules.d/99-rk855.rules")
         print(" 3. Check dmesg or lsusb for '0c45:8018'.")
         return 1
 
     print(f"Detected {len(devices)} device(s):")
     for i, d in enumerate(devices, 1):
-        print(f" [{i}] Product:      {d.get('product_string', 'RK68')}")
+        print(f" [{i}] Product:      {d.get('product_string', 'RK855')}")
         print(f"     Manufacturer: {d.get('manufacturer_string', 'Sonix')}")
         print(f"     Path:         {d.get('path')}")
         print(f"     Interface:    {d.get('interface_number')}")
     return 0
 
 
-def cmd_light(args, dev: RK68Device, cfg: ConfigManager):
+def cmd_light(args, dev: RK855Device, cfg: ConfigManager):
     mode = LightingMode.from_string(args.mode)
     color = parse_color(args.color) if args.color else DEFAULT_BACKLIGHT_RGB
     speed = args.speed
@@ -102,7 +102,7 @@ def cmd_light(args, dev: RK68Device, cfg: ConfigManager):
     return 0
 
 
-def cmd_remap(args, dev: RK68Device, cfg: ConfigManager):
+def cmd_remap(args, dev: RK855Device, cfg: ConfigManager):
     source_key = find_key(args.key)
     if not source_key:
         print(f"Error: Unknown physical key '{args.key}'.")
@@ -133,7 +133,7 @@ def cmd_remap(args, dev: RK68Device, cfg: ConfigManager):
     return 0
 
 
-def cmd_profile(args, dev: RK68Device, cfg: ConfigManager):
+def cmd_profile(args, dev: RK855Device, cfg: ConfigManager):
     action = args.profile_action
 
     if action == "list":
@@ -188,15 +188,15 @@ def cmd_profile(args, dev: RK68Device, cfg: ConfigManager):
     return 0
 
 
-def cmd_reset(args, dev: RK68Device):
-    print("Resetting RK68 keyboard to factory defaults...")
+def cmd_reset(args, dev: RK855Device):
+    print("Resetting RK855 keyboard to factory defaults...")
     with dev:
         dev.reset_defaults()
     print("Success: Keyboard reset.")
     return 0
 
 
-def cmd_test(args, dev: RK68Device):
+def cmd_test(args, dev: RK855Device):
     """Launch the interactive Key Tester interface."""
     from .gui.main import main as gui_main
     gui_args = ["--tester"]
@@ -207,8 +207,8 @@ def cmd_test(args, dev: RK68Device):
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="rk68",
-        description="Royal Kludge RK68 Mechanical Keyboard Linux Configuration Utility",
+        prog="rk855",
+        description="Royal Kludge RK855 Mechanical Keyboard Linux Configuration Utility",
     )
     parser.add_argument(
         "--mock", action="store_true", help="Run with mock device for simulation and testing"
@@ -278,7 +278,7 @@ def main(argv=None):
     parser = create_parser()
     args = parser.parse_args(argv)
 
-    dev = MockRK68Device() if args.mock else RK68Device()
+    dev = MockRK855Device() if args.mock else RK855Device()
     cfg = ConfigManager()
 
     try:

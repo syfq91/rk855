@@ -1,14 +1,14 @@
 """Unit tests for USB HID Feature Report protocol packet encoder."""
 
 import unittest
-from rk68.constants import (
+from rk855.constants import (
     REPORT_ID,
     REPORT_SIZE,
     REPORT_PAYLOAD_SIZE,
     LightingMode,
     CommandOpcode,
 )
-from rk68.protocol import (
+from rk855.protocol import (
     build_feature_report,
     build_preamble_packet,
     build_commit_packet,
@@ -27,7 +27,7 @@ from rk68.protocol import (
 )
 
 
-class TestRK68Protocol(unittest.TestCase):
+class TestRK855Protocol(unittest.TestCase):
 
     def test_build_feature_report_size_and_id(self):
         payload = b"\x04\x01\x02\x03"

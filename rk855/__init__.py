@@ -1,9 +1,9 @@
-"""Royal Kludge RK68 Linux Driver & Configuration Suite."""
+"""Royal Kludge RK855 Linux Driver & Configuration Suite."""
 
 __version__ = "1.0.0"
 
 from .constants import VENDOR_ID, PRODUCT_ID, LightingMode
-from .device import RK68Device, MockRK68Device
+from .device import RK855Device, MockRK855Device, RK68Device, MockRK68Device
 from .layout import KEY_DEFINITIONS, find_key
 from .protocol import (
     build_lighting_packet,
@@ -17,6 +17,8 @@ __all__ = [
     "VENDOR_ID",
     "PRODUCT_ID",
     "LightingMode",
+    "RK855Device",
+    "MockRK855Device",
     "RK68Device",
     "MockRK68Device",
     "KEY_DEFINITIONS",

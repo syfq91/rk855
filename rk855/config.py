@@ -1,4 +1,4 @@
-"""Profile and configuration management for RK68 on Linux."""
+"""Profile and configuration management for RK855 on Linux."""
 
 import json
 import os
@@ -52,7 +52,12 @@ class ConfigManager:
 
     def __init__(self, config_dir: Optional[Path] = None):
         if config_dir is None:
-            self.config_dir = Path.home() / ".config" / "rk68"
+            rk855_dir = Path.home() / ".config" / "rk855"
+            rk68_dir = Path.home() / ".config" / "rk68"
+            if not rk855_dir.exists() and rk68_dir.exists():
+                self.config_dir = rk68_dir
+            else:
+                self.config_dir = rk855_dir
         else:
             self.config_dir = Path(config_dir)
 

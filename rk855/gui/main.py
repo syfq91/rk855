@@ -1,8 +1,8 @@
 """Entrypoint for the PyQt6 graphical interface."""
 
 import sys
-from ..device import RK68Device, MockRK68Device
-from .window import RK68MainWindow, PYQT_AVAILABLE
+from ..device import RK855Device, MockRK855Device, RK68Device, MockRK68Device
+from .window import RK855MainWindow, RK68MainWindow, PYQT_AVAILABLE
 
 
 def main(argv=None):
@@ -14,7 +14,7 @@ def main(argv=None):
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(argv or sys.argv)
-    app.setApplicationName("RK68 Linux Configurator")
+    app.setApplicationName("RK855 Linux Configurator")
 
     # Check for --mock, --tester, and --remap flags
     args = argv or sys.argv
@@ -25,9 +25,9 @@ def main(argv=None):
         start_tab = "remap"
     else:
         start_tab = "lighting"
-    device = MockRK68Device() if is_mock else RK68Device()
+    device = MockRK855Device() if is_mock else RK855Device()
 
-    window = RK68MainWindow(device=device, start_tab=start_tab)
+    window = RK855MainWindow(device=device, start_tab=start_tab)
     window.show()
 
     return app.exec()

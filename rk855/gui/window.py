@@ -1,4 +1,4 @@
-"""Main application window for RK68 Linux GUI."""
+"""Main application window for RK855 Linux GUI."""
 
 from typing import Optional
 from ..config import ConfigManager, KeyboardProfile
@@ -8,7 +8,7 @@ from ..constants import (
     DEFAULT_BACKLIGHT_COLOR,
     DEFAULT_BACKLIGHT_RGB,
 )
-from ..device import RK68Device, MockRK68Device
+from ..device import RK855Device, MockRK855Device, RK68Device, MockRK68Device
 from ..layout import find_key, KEY_DEFINITIONS, RemapTarget, REMAP_TARGETS
 from .keyboard_widget import KeyboardCanvas, PYQT_AVAILABLE
 from .key_tester import KeyTesterWidget
@@ -37,12 +37,12 @@ else:
     QMainWindow = object
 
 
-class RK68MainWindow(QMainWindow):
-    """Primary desktop interface for Royal Kludge RK68 on Linux."""
+class RK855MainWindow(QMainWindow):
+    """Primary desktop interface for Royal Kludge RK855 on Linux."""
 
     def __init__(
         self,
-        device: Optional[RK68Device] = None,
+        device: Optional[RK855Device] = None,
         config_manager: Optional[ConfigManager] = None,
         start_tab: str = "config",
     ):
@@ -52,14 +52,14 @@ class RK68MainWindow(QMainWindow):
             )
 
         super().__init__()
-        self.device = device or RK68Device()
+        self.device = device or RK855Device()
         self.config_manager = config_manager or ConfigManager()
         self.current_profile = self.config_manager.load_profile(
             self.config_manager.get_active_profile_name()
         )
         self.current_color = QColor(self.current_profile.color)
 
-        self.setWindowTitle("Royal Kludge RK68 Linux Configurator")
+        self.setWindowTitle("Royal Kludge RK855 Linux Configurator")
         self.resize(940, 720)
         self.setStyleSheet("""
             QMainWindow { background-color: #1e1e24; }
@@ -212,7 +212,7 @@ class RK68MainWindow(QMainWindow):
         # Bottom Apply Row for Lighting
         apply_light_layout = QHBoxLayout()
         apply_light_layout.addStretch()
-        self.apply_btn = QPushButton("Apply Lighting to RK68")
+        self.apply_btn = QPushButton("Apply Lighting to RK855")
         self.apply_btn.setObjectName("applyBtn")
         self.apply_btn.setFixedHeight(38)
         self.apply_btn.clicked.connect(self._apply_to_hardware)
@@ -294,7 +294,7 @@ class RK68MainWindow(QMainWindow):
         # Bottom Apply Row for Remapping
         apply_remap_layout = QHBoxLayout()
         apply_remap_layout.addStretch()
-        self.apply_remap_btn = QPushButton("Apply Remapping to RK68")
+        self.apply_remap_btn = QPushButton("Apply Remapping to RK855")
         self.apply_remap_btn.setObjectName("applyBtn")
         self.apply_remap_btn.setFixedHeight(38)
         self.apply_remap_btn.clicked.connect(self._apply_to_hardware)
@@ -328,12 +328,12 @@ class RK68MainWindow(QMainWindow):
         return super().eventFilter(watched, event)
 
     def _check_device_status(self):
-        devices = RK68Device.enumerate_devices()
+        devices = RK855Device.enumerate_devices()
         if devices:
-            self.status_label.setText("Device: RK68 Connected (Wired USB)")
+            self.status_label.setText("Device: RK855 Connected (Wired USB)")
             self.status_label.setStyleSheet("font-weight: bold; color: #98c379;")
         else:
-            self.status_label.setText("Device: RK68 Not Connected (Plug in USB-C cable)")
+            self.status_label.setText("Device: RK855 Not Connected (Plug in USB-C cable)")
             self.status_label.setStyleSheet("font-weight: bold; color: #e06c75;")
 
     def _refresh_profiles(self):
@@ -460,7 +460,7 @@ class RK68MainWindow(QMainWindow):
             self,
             "Key Remapped",
             f"Key '{selected.desc}' will be remapped to '{target.desc}' (0x{target.code:02X}).\n\n"
-            "Click 'Apply Remapping to RK68' below to write to keyboard onboard memory."
+            "Click 'Apply Remapping to RK855' below to write to keyboard onboard memory."
         )
 
     def _clear_remap(self):
@@ -541,10 +541,14 @@ class RK68MainWindow(QMainWindow):
                             pass
                 if remap_dict:
                     self.device.remap_keys(remap_dict)
-            QMessageBox.information(self, "Success", "Configuration sent successfully to RK68 keyboard!")
+            QMessageBox.information(self, "Success", "Configuration sent successfully to RK855 keyboard!")
         except Exception as e:
             QMessageBox.critical(
                 self, "Communication Error",
-                f"Could not send configuration to RK68: {e}\n\n"
+                f"Could not send configuration to RK855: {e}\n\n"
                 "Ensure keyboard is connected via wired USB cable and udev rules are active."
             )
+
+
+# Backward compatibility alias
+RK68MainWindow = RK855MainWindow

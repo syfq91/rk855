@@ -1,4 +1,4 @@
-"""Hardware device communication layer for Royal Kludge RK68 via HIDAPI."""
+"""Hardware device communication layer for Royal Kludge RK855 via HIDAPI."""
 
 import logging
 import time
@@ -19,7 +19,7 @@ from .protocol import (
     build_reset_transaction,
 )
 
-logger = logging.getLogger("rk68.device")
+logger = logging.getLogger("rk855.device")
 
 try:
     import hid  # provided by hidapi / cython-hidapi
@@ -29,8 +29,8 @@ except ImportError:
     HID_AVAILABLE = False
 
 
-class RK68Device:
-    """Manages the connection and USB HID communication with the RK68 keyboard."""
+class RK855Device:
+    """Manages the connection and USB HID communication with the RK855 keyboard."""
 
     def __init__(self, vendor_id: int = VENDOR_ID, product_id: int = PRODUCT_ID):
         self.vendor_id = vendor_id
@@ -41,7 +41,7 @@ class RK68Device:
 
     @classmethod
     def enumerate_devices(cls) -> List[Dict]:
-        """List all detected RK68 keyboards connected via USB."""
+        """List all detected RK855 keyboards connected via USB."""
         if not HID_AVAILABLE:
             return []
         devices = []
@@ -82,14 +82,14 @@ class RK68Device:
             else:
                 self._device.open(self.vendor_id, self.product_id)
             self._is_open = True
-            logger.info("Successfully connected to RK68 (0x%04X:0x%04X)", self.vendor_id, self.product_id)
+            logger.info("Successfully connected to RK855 (0x%04X:0x%04X)", self.vendor_id, self.product_id)
             return True
         except Exception as e:
             self._device = None
             self._is_open = False
-            logger.error("Failed to open RK68 device: %s", e)
+            logger.error("Failed to open RK855 device: %s", e)
             raise ConnectionError(
-                f"Could not open RK68 device (0x{self.vendor_id:04X}:0x{self.product_id:04X}): {e}\n"
+                f"Could not open RK855 device (0x{self.vendor_id:04X}:0x{self.product_id:04X}): {e}\n"
                 "Ensure keyboard is connected via USB cable and udev rules are installed."
             ) from e
 
@@ -110,7 +110,7 @@ class RK68Device:
         
         result = self._device.send_feature_report(report_bytes)
         if result < 0:
-            raise IOError("Failed to send feature report to RK68 keyboard")
+            raise IOError("Failed to send feature report to RK855 keyboard")
         return result
 
     def send_reports(self, reports: List[bytes], delay_ms: float = 2.0) -> int:
@@ -179,7 +179,7 @@ class RK68Device:
         self.close()
 
 
-class MockRK68Device(RK68Device):
+class MockRK855Device(RK855Device):
     """Virtual mock device for testing and headless verification without physical USB hardware."""
 
     def __init__(self):
@@ -211,3 +211,8 @@ class MockRK68Device(RK68Device):
         for report in reports:
             total += self.send_feature_report(report)
         return total
+
+
+# Backward compatibility aliases
+RK68Device = RK855Device
+MockRK68Device = MockRK855Device

@@ -24,8 +24,11 @@ $SUDO udevadm trigger
 
 # 2. Install python package
 echo "[+] Installing rk855 Python package and dependencies..."
-python3 -m pip install --upgrade pip
-python3 -m pip install .
+if command -v uv >/dev/null 2>&1; then
+  uv tool install --editable "$SCRIPT_DIR[gui]" --force
+else
+  python3 -m pip install --break-system-packages "$SCRIPT_DIR[gui]" 2>/dev/null || python3 -m pip install "$SCRIPT_DIR[gui]"
+fi
 
 echo ""
 echo "=== Installation Complete! ==="

@@ -18,6 +18,7 @@ from .constants import (
     CommandOpcode,
     DEFAULT_BACKLIGHT_RGB,
 )
+from .layout import KEY_DEFINITIONS, CODE_TO_KEY
 
 
 def build_feature_report(payload: bytes) -> bytes:
@@ -35,26 +36,26 @@ def build_feature_report(payload: bytes) -> bytes:
     return bytes([REPORT_ID]) + padded
 
 
-def build_preamble_packet() -> bytes:
-    """Build the transaction begin / handshake preamble packet (0x04, 0x18)."""
+def build_preamble_packet(primary_opcode: int = CommandOpcode.PRIMARY) -> bytes:
+    """Build the transaction begin / handshake preamble packet (primary_opcode, 0x18)."""
     payload = bytearray(REPORT_PAYLOAD_SIZE)
-    payload[0] = CommandOpcode.PRIMARY       # 0x04
+    payload[0] = primary_opcode & 0xFF
     payload[1] = CommandOpcode.SUB_PREAMBLE  # 0x18
     return bytes([REPORT_ID]) + bytes(payload)
 
 
-def build_commit_packet() -> bytes:
-    """Build the commit packet (0x04, 0x02) to flush RAM settings to onboard flash."""
+def build_commit_packet(primary_opcode: int = CommandOpcode.PRIMARY) -> bytes:
+    """Build the commit packet (primary_opcode, 0x02) to flush RAM settings to onboard flash."""
     payload = bytearray(REPORT_PAYLOAD_SIZE)
-    payload[0] = CommandOpcode.PRIMARY     # 0x04
+    payload[0] = primary_opcode & 0xFF
     payload[1] = CommandOpcode.SUB_COMMIT  # 0x02
     return bytes([REPORT_ID]) + bytes(payload)
 
 
-def build_flush_packet() -> bytes:
-    """Build the session flush / transaction end packet (0x04, 0xF0)."""
+def build_flush_packet(primary_opcode: int = CommandOpcode.PRIMARY) -> bytes:
+    """Build the session flush / transaction end packet (primary_opcode, 0xF0)."""
     payload = bytearray(REPORT_PAYLOAD_SIZE)
-    payload[0] = CommandOpcode.PRIMARY    # 0x04
+    payload[0] = primary_opcode & 0xFF
     payload[1] = CommandOpcode.SUB_FLUSH  # 0xF0
     return bytes([REPORT_ID]) + bytes(payload)
 
@@ -269,56 +270,77 @@ def build_full_lighting_transaction(
     return packets
 
 
-def build_key_remap_packet(key_code: int, target_scancode: int) -> bytes:
-    """Build a single key remap report (0x04, 0x20)."""
+def build_key_remap_packet(
+    key_code: int, target_scancode: int, key_index: Optional[int] = None
+) -> bytes:
+    """Build a single key remap report (0x06, 0x20)."""
     payload = bytearray(REPORT_PAYLOAD_SIZE)
-    payload[0] = CommandOpcode.PRIMARY        # 0x04
-    payload[1] = CommandOpcode.SUB_KEY_REMAP  # 0x20
+    payload[0] = CommandOpcode.PRIMARY_KEY_REMAP  # 0x06
+    payload[1] = CommandOpcode.SUB_KEY_REMAP      # 0x20
     payload[2] = key_code & 0xFF
     payload[3] = target_scancode & 0xFF
     payload[4] = (target_scancode >> 8) & 0xFF
+    if key_index is not None:
+        payload[5] = key_index & 0xFF
     return bytes([REPORT_ID]) + bytes(payload)
 
 
-def build_key_remap_transaction(remaps: Dict[int, int]) -> List[bytes]:
-    """Build the complete key remapping transaction matching DeviceDriver.exe (VA 0x00413250).
+def build_key_remap_matrix_table(remaps: Dict[int, int]) -> bytearray:
+    """Construct a full 256-byte (128-slot) matrix keymap table.
 
-    Sequence:
-      1. Preamble report (0x04 0x18)
-      2. Remap block header (0x04, 0x20, count=4 chunks = 256 bytes)
-      3. 4 payload reports containing (key_code, target_scancode) pairs
-      4. Commit report (0x04 0x02)
-      5. Flush report (0x04 0xF0)
+    Pre-populates default scancodes for all 68 physical switches in KEY_DEFINITIONS,
+    and applies any requested remappings to their respective matrix positions.
+    """
+    data_buffer = bytearray(256)
+    for idx, k in enumerate(KEY_DEFINITIONS):
+        # Check if remapped by keycode or physical index
+        target_code = remaps.get(k.code, remaps.get(idx, k.code))
+        offset = idx * 2
+        data_buffer[offset] = target_code & 0xFF
+        data_buffer[offset + 1] = (target_code >> 8) & 0xFF
+    return data_buffer
+
+
+def build_key_remap_transaction(remaps: Dict[int, int]) -> List[bytes]:
+    """Build the complete key remapping transaction for the Sonix RK855 MCU.
+
+    Uses Primary Opcode 0x06 (Key Remap & Configuration Subsystem) matching
+    the reverse-engineered DeviceDriver.exe specification:
+      1. Preamble report (0x06 0x18)
+      2. Remap matrix header (0x06 0x20, 4 chunks = 256 bytes)
+      3. 4 matrix table chunks (256 bytes total with all 68 keys pre-populated)
+      4. Targeted per-key remap command packets (0x06 0x20) for explicit MCU handlers
+      5. Commit report (0x06 0x02) -> flushes to onboard flash memory
+      6. Flush report (0x06 0xF0)  -> activates remapping in hardware
     """
     packets = []
-    # 1. Preamble
-    packets.append(build_preamble_packet())
+    # 1. Preamble (0x06 0x18)
+    packets.append(build_preamble_packet(primary_opcode=CommandOpcode.PRIMARY_KEY_REMAP))
 
-    # 2. Header (0x04 0x20 with chunk count 4 at byte 8)
+    # 2. Header (0x06 0x20 with chunk count 4 at byte 8)
     hdr = bytearray(REPORT_PAYLOAD_SIZE)
-    hdr[0] = CommandOpcode.PRIMARY        # 0x04
-    hdr[1] = CommandOpcode.SUB_KEY_REMAP  # 0x20
-    hdr[7] = 0x04                         # 4 chunks = 256 bytes
+    hdr[0] = CommandOpcode.PRIMARY_KEY_REMAP  # 0x06
+    hdr[1] = CommandOpcode.SUB_KEY_REMAP      # 0x20
+    hdr[7] = 0x04                             # 4 chunks = 256 bytes
     packets.append(bytes([REPORT_ID]) + bytes(hdr))
 
-    # 3. 256 bytes payload buffer
-    data_buffer = bytearray(256)
-    offset = 0
-    for key_code, target_code in remaps.items():
-        if offset + 2 > len(data_buffer):
-            break
-        data_buffer[offset] = key_code & 0xFF
-        data_buffer[offset + 1] = target_code & 0xFF
-        offset += 2
+    # 3. 256 bytes full matrix keymap table pre-populated with default keycodes
+    data_buffer = build_key_remap_matrix_table(remaps)
 
     # Split into 4 chunks of 64 bytes
     for i in range(0, 256, REPORT_PAYLOAD_SIZE):
         chunk = data_buffer[i : i + REPORT_PAYLOAD_SIZE]
         packets.append(bytes([REPORT_ID]) + bytes(chunk))
 
-    # 4. Commit & Flush
-    packets.append(build_commit_packet())
-    packets.append(build_flush_packet())
+    # 4. Explicit per-key remap packets for direct MCU registers
+    for key_code, target_code in remaps.items():
+        k_def = CODE_TO_KEY.get(key_code)
+        idx = KEY_DEFINITIONS.index(k_def) if k_def in KEY_DEFINITIONS else None
+        packets.append(build_key_remap_packet(key_code, target_code, key_index=idx))
+
+    # 5. Commit & Flush under 0x06
+    packets.append(build_commit_packet(primary_opcode=CommandOpcode.PRIMARY_KEY_REMAP))
+    packets.append(build_flush_packet(primary_opcode=CommandOpcode.PRIMARY_KEY_REMAP))
     return packets
 
 
@@ -356,10 +378,12 @@ def build_reset_packet() -> bytes:
 
 
 def build_reset_transaction() -> List[bytes]:
-    """Build a complete reset to factory defaults transaction."""
+    """Build a complete reset to factory defaults transaction for both lighting and remap."""
     packets = []
-    packets.append(build_preamble_packet())
-    # Send default static blue lighting bank
+    # 1. Reset all key mappings back to default 68-key matrix under 0x06
+    packets.extend(build_key_remap_transaction({}))
+    # 2. Reset lighting to default static blue lighting bank under 0x04
+    packets.append(build_preamble_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
     packets.extend(build_lighting_bank_packets(
         active_mode=LightingMode.STATIC,
         speed=3,
@@ -367,6 +391,6 @@ def build_reset_transaction() -> List[bytes]:
         color_rgb=DEFAULT_BACKLIGHT_RGB,
         direction=0,
     ))
-    packets.append(build_commit_packet())
-    packets.append(build_flush_packet())
+    packets.append(build_commit_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
+    packets.append(build_flush_packet(primary_opcode=CommandOpcode.PRIMARY_LIGHTING))
     return packets

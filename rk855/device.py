@@ -154,21 +154,21 @@ class RK855Device:
         """Remap a physical key scancode and commit to keyboard onboard memory."""
         self._active_remaps[key_code] = target_scancode
         packets = build_key_remap_transaction(self._active_remaps)
-        self.send_reports(packets)
+        self.send_reports(packets, delay_ms=5.0)
         return True
 
     def remap_keys(self, remaps: Dict[int, int]) -> bool:
         """Batch remap multiple physical keys in a single atomic hardware transaction."""
         self._active_remaps.update(remaps)
         packets = build_key_remap_transaction(self._active_remaps)
-        self.send_reports(packets)
+        self.send_reports(packets, delay_ms=5.0)
         return True
 
     def reset_defaults(self) -> bool:
         """Reset keyboard onboard configuration to factory defaults."""
         self._active_remaps.clear()
         packets = build_reset_transaction()
-        self.send_reports(packets)
+        self.send_reports(packets, delay_ms=5.0)
         return True
 
     def __enter__(self):

@@ -122,9 +122,14 @@ SINGLE_COLOR_LIGHTING_MODES = [
 class CommandOpcode(IntEnum):
     """Firmware packet command opcodes and sub-opcodes.
 
-    The Sonix MCU architecture uses 0x04 as the universal primary command opcode
-    for all configuration feature reports. Operations are distinguished by the
-    sub-opcode in Byte 2 of the 65-byte report (Byte 1 of payload):
+    The Sonix MCU architecture divides configuration subsystems by primary opcode
+    in Byte 1 of the 65-byte report (Byte 0 of payload):
+      - 0x04: Backlight / Lighting Subsystem
+      - 0x06: Key Remapping / Configuration Subsystem
+      - 0x02: Profile & Macro Transaction Controls
+
+    Operations are distinguished by the sub-opcode in Byte 2 of the 65-byte report
+    (Byte 1 of payload):
       - 0x18: Preamble / Transaction Begin
       - 0x11: Preset Lighting Mode Config
       - 0x13: Lighting Bank Matrix Header (19 modes)
@@ -134,9 +139,12 @@ class CommandOpcode(IntEnum):
       - 0x02: Commit / Apply to Onboard Flash
       - 0xF0: Session Flush / End
     """
-    # Primary Opcode (Byte 1 of 65-byte report)
-    PRIMARY = 0x04
-    SET_LIGHT_CONFIG = 0x04  # Legacy alias
+    # Primary Opcodes (Byte 1 of 65-byte report)
+    PRIMARY = 0x04          # Default / Lighting primary opcode
+    PRIMARY_LIGHTING = 0x04 # Lighting subsystem
+    PRIMARY_KEY_REMAP = 0x06 # Key remapping subsystem
+    PRIMARY_PROFILE = 0x02  # Profile / macro controls
+    SET_LIGHT_CONFIG = 0x04 # Legacy alias
 
     # Sub-Opcodes (Byte 2 of 65-byte report)
     SUB_QUERY = 0x01

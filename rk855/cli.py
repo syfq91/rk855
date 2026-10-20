@@ -130,6 +130,7 @@ def cmd_remap(args, dev: RK855Device, cfg: ConfigManager):
         print(f"Saved remapping to profile '{active_name}'.")
 
     print("Success: Key remapped.")
+    print("Tip: Test the remapped key actuation with: rk855 test")
     return 0
 
 

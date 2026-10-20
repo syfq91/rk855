@@ -20,6 +20,7 @@ from rk855.protocol import (
     build_lighting_bank_packets,
     build_full_lighting_transaction,
     build_key_remap_packet,
+    build_key_remap_matrix_table,
     build_key_remap_transaction,
     build_custom_rgb_frame,
     build_reset_packet,
@@ -178,36 +179,55 @@ class TestRK855Protocol(unittest.TestCase):
         self.assertEqual(tx[-1][2], CommandOpcode.SUB_FLUSH)
 
     def test_build_key_remap_packet(self):
-        packet = build_key_remap_packet(key_code=0x39, target_scancode=0xE0)
+        packet = build_key_remap_packet(key_code=0x39, target_scancode=0xE0, key_index=30)
         self.assertEqual(len(packet), 65)
         self.assertEqual(packet[0], REPORT_ID)
-        self.assertEqual(packet[1], CommandOpcode.PRIMARY)
-        self.assertEqual(packet[2], CommandOpcode.SUB_KEY_REMAP)
+        self.assertEqual(packet[1], CommandOpcode.PRIMARY_KEY_REMAP)  # 0x06
+        self.assertEqual(packet[2], CommandOpcode.SUB_KEY_REMAP)      # 0x20
         self.assertEqual(packet[3], 0x39)
         self.assertEqual(packet[4], 0xE0)
+        self.assertEqual(packet[5], 0x00)
+        self.assertEqual(packet[6], 30)
+
+    def test_build_key_remap_matrix_table(self):
+        # Default with no remaps
+        table = build_key_remap_matrix_table({})
+        self.assertEqual(len(table), 256)
+        # Key 0 is ESC (0x29)
+        self.assertEqual(table[0], 0x29)
+        self.assertEqual(table[1], 0x00)
+        # Key 30 is CapsLock (0x39)
+        self.assertEqual(table[30 * 2], 0x39)
+        self.assertEqual(table[30 * 2 + 1], 0x00)
+
+        # With CapsLock (0x39) remapped to Left Control (0xE0)
+        remapped_table = build_key_remap_matrix_table({0x39: 0xE0})
+        self.assertEqual(remapped_table[30 * 2], 0xE0)
+        self.assertEqual(remapped_table[30 * 2 + 1], 0x00)
+        # Other keys remain untouched
+        self.assertEqual(remapped_table[0], 0x29)
 
     def test_build_key_remap_transaction(self):
         remaps = {0x39: 0xE0, 0x29: 0x35}
         tx = build_key_remap_transaction(remaps)
-        # Preamble(1) + Header(1) + Data(4 chunks = 256B) + Commit(1) + Flush(1) = 8 packets
-        self.assertEqual(len(tx), 8)
+        # Preamble(1) + Header(1) + 4 Chunks(4) + 2 Per-Key Direct Packets(2) + Commit(1) + Flush(1) = 10 packets
+        self.assertEqual(len(tx), 10)
         for pkt in tx:
             self.assertEqual(len(pkt), REPORT_SIZE)
             self.assertEqual(pkt[0], REPORT_ID)
 
-        # Preamble
-        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY)
+        # Preamble uses PRIMARY_KEY_REMAP 0x06
+        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY_KEY_REMAP)
         self.assertEqual(tx[0][2], CommandOpcode.SUB_PREAMBLE)
-        # Header
-        self.assertEqual(tx[1][1], CommandOpcode.PRIMARY)
+        # Header uses PRIMARY_KEY_REMAP 0x06
+        self.assertEqual(tx[1][1], CommandOpcode.PRIMARY_KEY_REMAP)
         self.assertEqual(tx[1][2], CommandOpcode.SUB_KEY_REMAP)
-        # Data chunks start with keycode
-        self.assertEqual(tx[2][1], 0x39)
-        self.assertEqual(tx[2][2], 0xE0)
-        # Commit & Flush
-        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY)
+        self.assertEqual(tx[1][8], 0x04)  # 4 chunks = 256 bytes
+
+        # Commit & Flush use PRIMARY_KEY_REMAP 0x06
+        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY_KEY_REMAP)
         self.assertEqual(tx[-2][2], CommandOpcode.SUB_COMMIT)
-        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY)
+        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY_KEY_REMAP)
         self.assertEqual(tx[-1][2], CommandOpcode.SUB_FLUSH)
 
     def test_build_custom_rgb_frame(self):
@@ -226,11 +246,13 @@ class TestRK855Protocol(unittest.TestCase):
 
     def test_build_reset_transaction(self):
         tx = build_reset_transaction()
-        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY)
+        # Reset includes remap reset under 0x06 and lighting reset under 0x04
+        self.assertEqual(tx[0][1], CommandOpcode.PRIMARY_KEY_REMAP)
         self.assertEqual(tx[0][2], CommandOpcode.SUB_PREAMBLE)
-        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY)
+        # Ends with lighting commit and flush under 0x04
+        self.assertEqual(tx[-2][1], CommandOpcode.PRIMARY_LIGHTING)
         self.assertEqual(tx[-2][2], CommandOpcode.SUB_COMMIT)
-        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY)
+        self.assertEqual(tx[-1][1], CommandOpcode.PRIMARY_LIGHTING)
         self.assertEqual(tx[-1][2], CommandOpcode.SUB_FLUSH)
 
 

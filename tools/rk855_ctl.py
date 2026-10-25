@@ -6,8 +6,9 @@
 # ]
 # ///
 """
-Royal Kludge RK855 (RK68) RGB Backlight & Device Control Tool
+Royal Kludge RK855 (RK68) Backlight & Device Control Tool
 Reverse-engineered from the official Windows configurator software.
+Supports both RGB and Single-Color (White/Blue monochrome) LED hardware variants.
 
 Protocol: USB HID Feature Reports (65 bytes: [ReportID(0x00), Opcode(0x04), ...])
 Device: VID 0x0C45, PID 0x8018

@@ -328,6 +328,14 @@ class MainWindow(QMainWindow):
         right_layout = QVBoxLayout(right_group)
         self.light_color_picker = ColorPickerWidget(initial_color=(0, 220, 255))
         right_layout.addWidget(self.light_color_picker)
+
+        lbl_single_color_tip = QLabel(
+            "💡 <b>Single-Color / White LED Models:</b> All 20 animation effects, brightness, and speed levels are fully supported via MCU PWM. Color controls illuminate in the physical LED color."
+        )
+        lbl_single_color_tip.setWordWrap(True)
+        lbl_single_color_tip.setStyleSheet("color: #7f848e; font-size: 11px; padding: 6px 4px;")
+        right_layout.addWidget(lbl_single_color_tip)
+
         right_layout.addStretch()
         layout.addWidget(right_group, 1)
 

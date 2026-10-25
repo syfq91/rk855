@@ -213,20 +213,44 @@ The matrix scanner function begins at `0x00004592` and is called periodically by
 
 ---
 
-## 8. RGB LED Subsystem & Driving Architecture
+## 8. LED Subsystem & Driving Architecture
 
-The RK855 features individually addressable RGB LEDs under each key switch.
+The RK855 hardware platform supports both **RGB** and **Single-Color (Monochrome White/Blue)** LED configurations using an identical MCU firmware core.
 
-### 8.1 Controller Interfaces
-- **Serial Transmission (`SN_SSP0`)**:
-  - Base Address: `0x4001C000`
-  - Operates as a high-speed SPI master feeding a dedicated LED matrix sink driver.
-  - Interrupt `SSP0_IRQHandler` (`0x558E`) manages double-buffered DMA/FIFO transfers.
+### 8.1 Controller Interfaces & PWM Engine
 - **Timing & Multiplexing (`SN_CT16B1`)**:
-  - Base Address: `0x40002000`
-  - 16-bit timer interrupt at `0x6252` provides row-switching PWM modulation.
+  - Base Address: `0x40002000`, Match Registers at `0x40002040`.
+  - 16-bit timer interrupt `CT16B1_IRQHandler` at `0x00006252` (calling `0x0000602C`) drives the multi-channel PWM duty cycles for every switch position.
+- **Matrix Row Drivers (`SN_GPIO0`, `SN_GPIO1`, `SN_GPIO2`)**:
+  - Active rows are switched in synchronization with PWM match updates.
+- **Serial Interface (`SN_SSP0`)**:
+  - Base Address: `0x4001C000`. High-speed SPI master interface (`P1.0` SCK, `P1.1` MOSI) handled by `SSP0_IRQHandler` at `0x0000558E`.
 
-### 8.2 Built-in Animation Tables
+### 8.2 The 18-Phase Scanning Loop & Framebuffer Architecture
+REA disassembly of `0x0000602C` reveals that the firmware organizes LED driving into an **18-phase multiplexing loop** (`cmp r0, #18` at `0x00006082`):
+- **Phases 0–5 (Rows 0–5, Red Phase):** Fed from Red row buffer at SRAM `0x2000096C` (6 rows × 42 bytes = 252 bytes).
+- **Phases 6–11 (Rows 0–5, Green Phase):** Fed from Green row buffer at SRAM `0x20000A68` (252 bytes).
+- **Phases 12–17 (Rows 0–5, Blue Phase):** Fed from Blue row buffer at SRAM `0x20000B64` (252 bytes).
+
+Each 42-byte row buffer streams 21 halfwords into the 16-bit PWM match registers at `0x40002040` (`0x00005902`–`0x0000594A`), refreshing the entire matrix with zero flicker.
+
+### 8.3 Single-Color LED Variant Compatibility & Simultaneous Drive
+Disassembly proves why the same firmware binary (`SN32F240B_32.bin`) functions seamlessly on single-color keyboard hardware:
+1. **Identical MCU & Matrix Lines:** The single-color model uses the exact same PCB and GPIO pinout; only the populated LED packages differ (2-pin monochrome white LEDs instead of 4-pin RGB LEDs).
+2. **Hardware PWM Modulation:** Because animations (Breathing, Wave, Reactive Single-On, etc.) and brightness levels (0–4) are computed into the timer PWM match registers, the single-color LEDs smoothly animate brightness and speed just like RGB LEDs.
+3. **Simultaneous Multi-Buffer Drive (`0x0000A8D2`):**
+   ```asm
+   A8D2: 21FF      movs    r1, #255            ; Full brightness
+   A8D6: 4BF2      ldr     r3, =0x2000096C     ; RED buffer
+   A8D8: 5299      strh    r1, [r3, r2]
+   A8DA: 4BF1      ldr     r3, =0x20000A68     ; GREEN buffer
+   A8DE: 5299      strh    r1, [r3, r2]
+   A8E2: 4BF1      ldr     r3, =0x20000B64     ; BLUE buffer
+   A8E4: 5299      strh    r1, [r3, r2]
+   ```
+   In static, monochrome, and indicator routines, the firmware writes identical PWM values to the Red, Green, and Blue buffers simultaneously ($R=G=B$, pure white). Regardless of which color phase line the physical single-color LED is soldered across, it receives full PWM power.
+
+### 8.4 Built-in Animation Tables
 - **Gamma / Brightness Table (`0x7990`)**:
   64 non-linear PWM values (`0x3F` down to `0x03`) to ensure linear visual brightness response across the LEDs.
 - **Color Palette Table (`0x7580`)**:

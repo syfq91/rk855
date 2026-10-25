@@ -18,7 +18,8 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 | **USB Operating VID / PID** | `0x0C45` : `0x8018` (Normal Keyboard Mode) |
 | **USB Bootloader VID / PID**| `0x0C45` : `0x82AA` (Sonix ISP Bootloader Mode) |
 | **Switch Matrix** | 8 Rows × 9 Columns multiplexed matrix (68 diode-isolated switches) |
-| **RGB LED Subsystem** | Per-key addressable RGB LEDs driven via SPI controller (`P1.0` SCK, `P1.1` MOSI) |
+| **LED Backlight Subsystem** | Multiplexed LED matrix driven via CT16B1 16-bit PWM timers (`0x40002040`) across 18 scanning phases (6 rows × 3 color phases: R, G, B) |
+| **Hardware Variations** | **RGB Variant** (per-key RGB SMD LEDs) and **Single-Color Variant** (monochrome white or blue SMD LEDs). **Both share identical PCBs, MCU, and unified factory firmware.** |
 | **Hardware Boot Pin** | `P0.4` (Internal pull-up; grounded at boot to force ISP bootloader) |
 
 ---
@@ -206,6 +207,14 @@ To switch from user firmware into the Sonix ISP bootloader, issue this 9-byte Fe
 ```
 0x00 0xAA 0x42 0x89 0x5A 0xFF 0x71 0x62 0xCC
 ```
+
+### 4.4 Single-Color LED Variant Compatibility
+The RK855 is sold in two hardware variations: an **RGB variant** and a **Single-Color LED variant** (pure white or blue LEDs). Reverse-engineering of `SN32F240B_32.bin` via **REA** confirmed:
+- **Unified Factory Firmware:** Both hardware variants share the exact same MCU firmware image.
+- **18-Phase Scanning Loop:** The firmware timer interrupt (`0x00006252`) modulates 18 multiplexing phases (6 rows × 3 color buffers: Red `0x2000096C`, Green `0x20000A68`, Blue `0x20000B64`).
+- **Feature Parity:** All 20 built-in animation effects, brightness levels (0–4), and speed levels (0–4) are fully functional on single-color boards via hardware PWM modulation.
+- **Color Commands:** On single-color hardware, the single LED channel illuminates in its physical color (e.g. white) regardless of the RGB hue selected.
+- **Flashing Safety:** The included factory firmware dump (`SN32F240B_32.hex` / `.bin`) can be safely flashed to either single-color or RGB boards.
 
 ---
 

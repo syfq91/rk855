@@ -74,4 +74,15 @@ The firmware can be flashed over USB without any hardware programmer (ST-Link / 
 > [!WARNING]
 > Flashing invalid or corrupt firmware may cause the keyboard to enter an unbootable state requiring physical bootloader pin grounding (`P0.4` / `BOOT` pin pulled LOW at power-on) to recover.
 
+---
+
+## 6. Hardware Variant Compatibility (RGB & Single-Color Models)
+
+Reverse engineering analysis using **REA** confirms that **`SN32F240B_32.hex` / `SN32F240B_32.bin` is the universal factory firmware for both the RGB and Single-Color (Monochrome / White LED) hardware revisions**:
+
+- Both models use the identical SONiX `SN32F240B` MCU, PCB matrix, and ISP bootloader entry sequence.
+- The firmware executes an 18-phase multiplexing loop (`0x00006082`) driving Red (`0x2000096C`), Green (`0x20000A68`), and Blue (`0x20000B64`) row buffers into 16-bit PWM match registers at `0x40002040`.
+- On single-color models, monochrome LEDs respond to all 20 animation effects, brightness levels, and speeds via hardware PWM modulation.
+- Flashing this firmware is 100% safe and verified for both single-color and RGB variants.
+
 For full register-level firmware analysis, refer to [docs/sn32f240b_firmware_analysis.md](../docs/sn32f240b_firmware_analysis.md).

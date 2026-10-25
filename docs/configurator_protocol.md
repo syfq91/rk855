@@ -136,6 +136,9 @@ When sending command `0x04 0x11`:
 - **Byte 8**: Speed Level (`0` – `4`, `0x0A` default)
 - **Byte 9**: Direction (`0x00` = Left-to-Right / Clockwise, `0x01` = Right-to-Left / Counter-clockwise)
 
+> [!NOTE]
+> **Single-Color LED Compatibility**: On monochrome / single-color LED variants of the RK855, the Sonix MCU processes the exact same command stream. Dynamic animation modes (0x01–0x12), Brightness (Byte 7), and Speed (Byte 8) are fully functional via hardware PWM modulation, illuminating in the physical LED color (e.g. White). Color parameters (Bytes 3–6) modulate duty cycles but produce no physical hue shift.
+
 ### 5.3 Per-Key Custom RGB Lighting Protocol
 To set custom static RGB illumination per individual key:
 1. Send Init: `[0x00, 0x04, 0x18, ...0x00]`

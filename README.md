@@ -85,8 +85,21 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-### 3.3 Backlight Control (`rk855_ctl.py`)
-Control backlight modes, custom RGB colors, brightness, and speed:
+### 3.3 Graphical User Interface (`rk855_gui.py`)
+Launch the cross-platform desktop configurator & firmware flasher:
+
+```bash
+# Launch GUI
+python3 rk855_gui.py
+
+# Launch in Simulator / Demo mode (offline preview)
+python3 rk855_gui.py --mock
+```
+
+The GUI provides an interactive 68-key physical keyboard layout for per-key RGB coloring, full controls for all 20 built-in lighting effects, and a safe ISP firmware flasher with live progress bar and terminal logs.
+
+### 3.4 Backlight CLI Control (`rk855_ctl.py`)
+Control backlight modes, custom RGB colors, brightness, and speed from the terminal:
 
 ```bash
 # Detect connected keyboard

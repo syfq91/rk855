@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Royal Kludge RK855 Configurator
+GenericName=Keyboard Configurator & Flasher
+Comment=Configure RGB lighting and flash firmware for Royal Kludge RK855 (RK68)
+Exec=python3 /home/syafiq/rk855/rk855_gui.py
+Icon=input-keyboard
+Terminal=false
+Type=Application
+Categories=Utility;HardwareSettings;
+Keywords=keyboard;rgb;firmware;flasher;rk855;rk68;sonix;

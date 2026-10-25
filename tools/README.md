@@ -1,10 +1,33 @@
-# Royal Kludge RK855 (RK68) CLI Tools
+# Royal Kludge RK855 (RK68) Cross-Platform Tooling Suite
 
-This folder provides cross-platform command-line tools to control and flash the **Royal Kludge RK855 (RK68)** mechanical keyboard under Linux, macOS, and Windows.
+This folder provides cross-platform graphical and command-line tools to control and flash the **Royal Kludge RK855 (RK68)** mechanical keyboard under Linux, macOS, and Windows.
 
 ---
 
-## 1. Prerequisites & Installation
+## 1. Graphical User Interface (`rk855_gui.py`)
+
+A full-featured, dark-themed desktop application built with PyQt6.
+
+```bash
+# Launch GUI
+python3 rk855_gui.py
+
+# Launch in Simulator / Demo mode (offline preview without physical keyboard)
+python3 rk855_gui.py --mock
+
+# Jump directly to Firmware Flasher tab
+python3 rk855_gui.py --flasher
+```
+
+### Features:
+- **💡 Backlight & Effects**: Full control of all 20 built-in lighting algorithms, brightness (0–4), speed (0–4), direction, and RGB palette / hex color selection.
+- **🎨 Per-Key RGB Studio**: Interactive vector 68-key keyboard view matching the physical RK855 layout. Click keys, box-select, or use quick presets (WASD, Arrow Keys, Modifiers, Numbers), assign colors, and upload the per-key matrix to onboard flash.
+- **⚡ Firmware Flasher**: Select official or custom `.hex` / `.bin` firmware files, transition into the Sonix ISP bootloader, execute erase/flash/verification cycles with live progress and ISP console logging, and reboot back into normal operating mode.
+- **ℹ️ Device & udev Help**: Real-time USB mode detection and non-root Linux udev rule installer.
+
+---
+
+## 2. Prerequisites & Installation
 
 The tools require Python 3.9+ and `hidapi` (plus `intelhex` for parsing `.hex` firmware files).
 

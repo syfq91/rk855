@@ -1,0 +1,12 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+*.Zone.Identifier
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/

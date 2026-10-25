@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device.config>
+ <Language.info>
+  <Language LCID="2052" init="0"/>
+ </Language.info>
+ <device.info>
+  <!-- 键盘: 1; 鼠标: 2; 鼠标垫: 3; 耳机: 4 ...  --> 
+  <device name="Mouse" type= "2" vid="0" pid="0" image="device_mouse.png" image_none="device_mouse_none.png"/>
+  <device name="KeyBoard 61K" type= "1" vid="05AC" pid="024F" image="device_keyboard61K.png" image_none="device_keyboard61K_none.png"/>
+  <device name="KeyBoard 71K" type= "1" vid="0" pid="0" image="device_keyboard71K.png" image_none="device_keyboard71K_none.png"/>
+  <device name="Headset" type= "4" vid="0" pid="0" image="device_headset.png" image_none="device_headset_none.png"/>
+  <device name="KeyBoard 104K" type= "1" vid="0" pid="0" image="device_keyboard104K.png" image_none="device_keyboard104K_none.png"/>
+ </device.info>
+ <Singledevice.info>
+  <device name="RK KeyBoard 68K" type= "1" vid="0c45" pid="8018" image="singledevice_keyboardRKW855.png" image_none="singledevice_keyboardRKW855_none.png"/>
+ </Singledevice.info>
+ <image.page>
+  <file path="page_kb_mouse.png"/>
+  <file path="page_keyboard71k.png"/>
+ </image.page>
+ <main.button>
+  <user show="0" data="doc/User Guide.pdf"/>
+  <website show="1" data="http://www.rkgaming.com"/>
+  <store show="1" data="https://mall.jd.com/index-1000004350.html"/>
+ </main.button>
+</device.config>

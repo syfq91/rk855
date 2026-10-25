@@ -20,8 +20,8 @@ class TestGuiIntegration(unittest.TestCase):
         window = MainWindow(mock=True)
 
         # 1. Test tab count & switching
-        self.assertEqual(window.tabs.count(), 4)
-        for i in range(4):
+        self.assertEqual(window.tabs.count(), 5)
+        for i in range(5):
             window.tabs.setCurrentIndex(i)
             self.assertEqual(window.tabs.currentIndex(), i)
 
@@ -45,8 +45,36 @@ class TestGuiIntegration(unittest.TestCase):
         # Verify mock device received packets
         self.assertTrue(len(window._mock_device.sent_packets) > 0)
 
-        # 4. Test Firmware Flasher preloaded file
+        # 4. Test Key Remapping Tab
         window.tabs.setCurrentIndex(2)
+        # Select key 30 (Caps Lock, 0x39)
+        window._on_remap_key_clicked(30)
+        self.assertIn("0x39", window.lbl_selected_remap_key.text())
+
+        # Select Modifiers category and Left Ctrl (0xE0)
+        cat_idx = window.combo_remap_category.findText("Modifiers")
+        if cat_idx >= 0:
+            window.combo_remap_category.setCurrentIndex(cat_idx)
+        act_idx = window.combo_target_action.findData(0xE0)
+        if act_idx >= 0:
+            window.combo_target_action.setCurrentIndex(act_idx)
+
+        # Assign action
+        window._on_assign_action() if hasattr(window, "_on_assign_action") else window._on_assign_remap_action()
+        self.assertEqual(window._remap_dict.get(0x39), 0xE0)
+        self.assertEqual(window.table_remaps.rowCount(), 1)
+
+        # Apply remap
+        window._on_apply_remap()
+        self.assertEqual(window._mock_device.remap_table.get(0x39), 0xE0)
+
+        # Test restore key
+        window._on_reset_selected_key_remap()
+        self.assertNotIn(0x39, window._remap_dict)
+        self.assertEqual(window.table_remaps.rowCount(), 0)
+
+        # 5. Test Firmware Flasher preloaded file
+        window.tabs.setCurrentIndex(3)
         hex_file = os.path.join(os.path.dirname(__file__), "..", "firmware", "SN32F240B_32.hex")
         if os.path.isfile(hex_file):
             window.load_firmware_file(os.path.abspath(hex_file))

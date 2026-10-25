@@ -24,6 +24,9 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QTextEdit,
     QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
     QApplication,
 )
 
@@ -31,6 +34,9 @@ from ..core.constants import (
     LIGHTING_MODES,
     KEY_PRESETS,
     PHYSICAL_KEYS,
+    REMAP_ACTIONS,
+    ACTION_BY_CODE,
+    RemapAction,
     KEYBOARD_VID,
     KEYBOARD_PID,
     BOOTLOADER_VID,
@@ -39,6 +45,7 @@ from ..core.constants import (
 )
 from ..core.device import RK855Device, DeviceMode, get_udev_rule_text
 from ..core.lighting import apply_lighting_mode, apply_custom_matrix
+from ..core.remap import apply_remap_table
 from ..core.flasher import (
     load_firmware,
     trigger_bootloader_mode,
@@ -202,6 +209,8 @@ class MainWindow(QMainWindow):
         self._mock_device = MockRK855Device() if mock else None
         self._loaded_firmware_bytes: bytes | None = None
         self._flash_worker: FlashWorker | None = None
+        self._remap_dict: dict[int, int] = {}  # {physical_scancode: target_code}
+        self._selected_remap_key_index: int = 0  # Esc
 
         self._setup_ui(initial_tab)
         self._init_watcher()
@@ -226,11 +235,13 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tab_lighting = self._create_lighting_tab()
         self.tab_per_key = self._create_per_key_tab()
+        self.tab_remap = self._create_remap_tab()
         self.tab_flasher = self._create_flasher_tab()
         self.tab_info = self._create_info_tab()
 
         self.tabs.addTab(self.tab_lighting, "💡 Backlight & Effects")
         self.tabs.addTab(self.tab_per_key, "🎨 Per-Key RGB Studio")
+        self.tabs.addTab(self.tab_remap, "⌨️ Key Remapping")
         self.tabs.addTab(self.tab_flasher, "⚡ Firmware Flasher")
         self.tabs.addTab(self.tab_info, "ℹ️ Device & udev Help")
 
@@ -483,7 +494,229 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to upload matrix: {e}")
 
     # --------------------------------------------------------------------------
-    # Tab 3: Firmware Flasher
+    # Tab 3: Key Remapping
+    # --------------------------------------------------------------------------
+    def _create_remap_tab(self) -> QWidget:
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(10)
+
+        # Header guidance & action buttons
+        top_bar = QHBoxLayout()
+        lbl_hint = QLabel("Click any key on the visual layout to reassign its function, or review and edit the active remapping table.")
+        lbl_hint.setStyleSheet("color: #7f848e; font-style: italic;")
+        top_bar.addWidget(lbl_hint)
+        top_bar.addStretch()
+
+        self.btn_reset_all_remaps = QPushButton("Clear All Remappings")
+        self.btn_reset_all_remaps.clicked.connect(self._on_clear_all_remaps)
+        top_bar.addWidget(self.btn_reset_all_remaps)
+
+        self.btn_apply_remaps = QPushButton("Apply & Save Remap to Keyboard")
+        self.btn_apply_remaps.setObjectName("primaryBtn")
+        self.btn_apply_remaps.clicked.connect(self._on_apply_remap)
+        top_bar.addWidget(self.btn_apply_remaps)
+        layout.addLayout(top_bar)
+
+        # Interactive Keyboard View configured for Remapping
+        self.remap_keyboard_view = KeyboardView()
+        self.remap_keyboard_view.set_remap_mode(True)
+        self.remap_keyboard_view.key_clicked.connect(self._on_remap_key_clicked)
+        layout.addWidget(self.remap_keyboard_view, 1)
+
+        # Bottom section: Editor (Left) & Active Table (Right)
+        bottom_box = QHBoxLayout()
+        bottom_box.setSpacing(14)
+
+        # Left: Reassign Selected Key
+        edit_group = QGroupBox("Reassign Key Function")
+        edit_layout = QVBoxLayout(edit_group)
+        edit_layout.setSpacing(8)
+
+        self.lbl_selected_remap_key = QLabel("Selected: ESC (Physical Code: 0x29)")
+        self.lbl_selected_remap_key.setStyleSheet("font-size: 13px; font-weight: bold; color: #61afef;")
+        edit_layout.addWidget(self.lbl_selected_remap_key)
+
+        self.lbl_current_remap_status = QLabel("Current Status: Default Factory Mapping")
+        self.lbl_current_remap_status.setStyleSheet("color: #98c379; font-weight: 500;")
+        edit_layout.addWidget(self.lbl_current_remap_status)
+
+        form = QFormLayout()
+        form.setSpacing(8)
+
+        # Category filter
+        self.combo_remap_category = QComboBox()
+        categories = ["All", "Letters", "Numbers", "Function Keys", "Navigation & Control", "Modifiers", "Symbols", "Multimedia", "Mouse", "Special"]
+        for cat in categories:
+            self.combo_remap_category.addItem(cat)
+        self.combo_remap_category.currentIndexChanged.connect(self._on_remap_category_changed)
+        form.addRow("Category:", self.combo_remap_category)
+
+        # Target action combo
+        self.combo_target_action = QComboBox()
+        form.addRow("New Action:", self.combo_target_action)
+        edit_layout.addLayout(form)
+
+        btn_row = QHBoxLayout()
+        self.btn_assign_action = QPushButton("Assign Action")
+        self.btn_assign_action.setObjectName("primaryBtn")
+        self.btn_assign_action.clicked.connect(self._on_assign_remap_action)
+
+        self.btn_restore_key = QPushButton("Restore Key to Default")
+        self.btn_restore_key.clicked.connect(self._on_reset_selected_key_remap)
+
+        btn_row.addWidget(self.btn_assign_action)
+        btn_row.addWidget(self.btn_restore_key)
+        edit_layout.addLayout(btn_row)
+
+        edit_layout.addStretch()
+        bottom_box.addWidget(edit_group, 4)
+
+        # Right: Active Remappings Table
+        table_group = QGroupBox("Active Remappings")
+        table_layout = QVBoxLayout(table_group)
+        table_layout.setSpacing(6)
+
+        self.table_remaps = QTableWidget()
+        self.table_remaps.setColumnCount(4)
+        self.table_remaps.setHorizontalHeaderLabels(["Key", "Orig Code", "Assigned Action", "Target Code"])
+        self.table_remaps.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table_remaps.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_remaps.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_remaps.setStyleSheet("""
+            QTableWidget {
+                background-color: #16181d;
+                border: 1px solid #2d3139;
+                gridline-color: #282c34;
+            }
+            QHeaderView::section {
+                background-color: #21252b;
+                color: #abb2bf;
+                padding: 4px;
+                border: 1px solid #282c34;
+                font-weight: bold;
+            }
+        """)
+        table_layout.addWidget(self.table_remaps)
+
+        self.lbl_remap_summary = QLabel("Remapped: 0 keys (Max 128)")
+        self.lbl_remap_summary.setStyleSheet("color: #7f848e; font-size: 11px;")
+        table_layout.addWidget(self.lbl_remap_summary)
+
+        bottom_box.addWidget(table_group, 5)
+        layout.addLayout(bottom_box, 1)
+
+        # Initialize combo
+        self._populate_remap_actions()
+        self._update_selected_key_ui()
+        return tab
+
+    def _populate_remap_actions(self) -> None:
+        selected_cat = self.combo_remap_category.currentText()
+        self.combo_target_action.clear()
+        for act in REMAP_ACTIONS:
+            if selected_cat == "All" or act.category == selected_cat:
+                self.combo_target_action.addItem(f"{act.name} (0x{act.code:02X})", act.code)
+
+    def _on_remap_category_changed(self) -> None:
+        self._populate_remap_actions()
+
+    def _on_remap_key_clicked(self, index: int) -> None:
+        self._selected_remap_key_index = index
+        self._update_selected_key_ui()
+
+    def _update_selected_key_ui(self) -> None:
+        key = PHYSICAL_KEYS[self._selected_remap_key_index]
+        self.lbl_selected_remap_key.setText(f"Selected: {key.label} (Physical Code: 0x{key.scancode:02X})")
+        if key.scancode in self._remap_dict:
+            target_code = self._remap_dict[key.scancode]
+            act = ACTION_BY_CODE.get(target_code)
+            act_name = act.name if act else f"Custom (0x{target_code:02X})"
+            self.lbl_current_remap_status.setText(f"Remapped to: {act_name} (0x{target_code:02X})")
+            self.lbl_current_remap_status.setStyleSheet("color: #e5c07b; font-weight: bold;")
+        else:
+            self.lbl_current_remap_status.setText("Current Status: Default Factory Function")
+            self.lbl_current_remap_status.setStyleSheet("color: #98c379; font-weight: 500;")
+
+    def _on_assign_remap_action(self) -> None:
+        key = PHYSICAL_KEYS[self._selected_remap_key_index]
+        target_code = self.combo_target_action.currentData()
+        if target_code is not None:
+            self._remap_dict[key.scancode] = target_code
+            self._update_remap_table_and_view()
+            self._update_selected_key_ui()
+
+    def _on_reset_selected_key_remap(self) -> None:
+        key = PHYSICAL_KEYS[self._selected_remap_key_index]
+        if key.scancode in self._remap_dict:
+            del self._remap_dict[key.scancode]
+            self._update_remap_table_and_view()
+            self._update_selected_key_ui()
+
+    def _on_clear_all_remaps(self) -> None:
+        if not self._remap_dict:
+            return
+        reply = QMessageBox.question(
+            self,
+            "Clear Remappings",
+            "Are you sure you want to restore all keys to default?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._remap_dict.clear()
+            self._update_remap_table_and_view()
+            self._update_selected_key_ui()
+
+    def _update_remap_table_and_view(self) -> None:
+        # Build labels dictionary for keyboard view: scancode -> display string
+        labels = {}
+        for scancode, target_code in self._remap_dict.items():
+            act = ACTION_BY_CODE.get(target_code)
+            labels[scancode] = act.name if act else f"0x{target_code:02X}"
+        self.remap_keyboard_view.set_remap_labels(labels)
+
+        # Update table
+        self.table_remaps.setRowCount(len(self._remap_dict))
+        scancode_to_key = {k.scancode: k for k in PHYSICAL_KEYS}
+
+        for row, (scancode, target_code) in enumerate(sorted(self._remap_dict.items())):
+            key = scancode_to_key.get(scancode)
+            key_name = key.label if key else f"0x{scancode:02X}"
+            act = ACTION_BY_CODE.get(target_code)
+            act_name = act.name if act else f"Code 0x{target_code:02X}"
+
+            self.table_remaps.setItem(row, 0, QTableWidgetItem(key_name))
+            self.table_remaps.setItem(row, 1, QTableWidgetItem(f"0x{scancode:02X}"))
+            self.table_remaps.setItem(row, 2, QTableWidgetItem(act_name))
+            self.table_remaps.setItem(row, 3, QTableWidgetItem(f"0x{target_code:02X}"))
+
+        self.lbl_remap_summary.setText(f"Remapped: {len(self._remap_dict)} keys (Max 128)")
+
+    def _on_apply_remap(self) -> None:
+        if self._is_simulator or self._mock_device:
+            apply_remap_table(self._mock_device, self._remap_dict)
+            QMessageBox.information(
+                self,
+                "Success",
+                f"[Simulator] Applied key remapping ({len(self._remap_dict)} custom keys programmed)!",
+            )
+            return
+
+        try:
+            dev = RK855Device(KEYBOARD_VID, KEYBOARD_PID)
+            with dev:
+                apply_remap_table(dev, self._remap_dict)
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Successfully programmed {len(self._remap_dict)} remapped keys to keyboard flash memory!",
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to apply key remapping: {e}")
+
+    # --------------------------------------------------------------------------
+    # Tab 4: Firmware Flasher
     # --------------------------------------------------------------------------
     def _create_flasher_tab(self) -> QWidget:
         tab = QWidget()
@@ -718,24 +951,28 @@ class MainWindow(QMainWindow):
         if self._is_simulator:
             self.btn_apply_light.setEnabled(True)
             self.btn_upload_matrix.setEnabled(True)
+            self.btn_apply_remaps.setEnabled(True)
             self.btn_trigger_bl.setEnabled(True)
             self.btn_reboot_normal.setEnabled(True)
             self.btn_flash.setEnabled(True)
         elif mode == DeviceMode.NORMAL:
             self.btn_apply_light.setEnabled(True)
             self.btn_upload_matrix.setEnabled(True)
+            self.btn_apply_remaps.setEnabled(True)
             self.btn_trigger_bl.setEnabled(True)
             self.btn_reboot_normal.setEnabled(False)
             self.btn_flash.setEnabled(True)
         elif mode == DeviceMode.BOOTLOADER:
             self.btn_apply_light.setEnabled(False)
             self.btn_upload_matrix.setEnabled(False)
+            self.btn_apply_remaps.setEnabled(False)
             self.btn_trigger_bl.setEnabled(False)
             self.btn_reboot_normal.setEnabled(True)
             self.btn_flash.setEnabled(True)
         else:
             self.btn_apply_light.setEnabled(False)
             self.btn_upload_matrix.setEnabled(False)
+            self.btn_apply_remaps.setEnabled(False)
             self.btn_trigger_bl.setEnabled(False)
             self.btn_reboot_normal.setEnabled(False)
             self.btn_flash.setEnabled(False)

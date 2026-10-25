@@ -24,8 +24,10 @@ FEATURE_REPORT_SIZE = 65
 CMD_BEGIN_LIGHT = 0x18
 CMD_SET_LIGHT = 0x11
 CMD_CUSTOM_RGB_CHUNK = 0x16
+CMD_BEGIN_REMAP = 0x20
 CMD_COMMIT_FLASH = 0x02
 CMD_SYNC_LIVE = 0xF0
+REMAP_TABLE_SIZE = 256
 
 # ISP Bootloader Opcodes
 ISP_OP_HANDSHAKE = 0x01
@@ -185,3 +187,139 @@ PRESET_COLORS: list[tuple[str, tuple[int, int, int]]] = [
     ("White", (255, 255, 255)),
     ("Off", (0, 0, 0)),
 ]
+
+
+@dataclass(frozen=True)
+class RemapAction:
+    code: int
+    name: str
+    category: str
+
+
+# Comprehensive list of remap targets
+REMAP_ACTIONS: list[RemapAction] = [
+    # Letters (Standard USB HID 0x04 - 0x1D)
+    RemapAction(0x04, "A", "Letters"),
+    RemapAction(0x05, "B", "Letters"),
+    RemapAction(0x06, "C", "Letters"),
+    RemapAction(0x07, "D", "Letters"),
+    RemapAction(0x08, "E", "Letters"),
+    RemapAction(0x09, "F", "Letters"),
+    RemapAction(0x0A, "G", "Letters"),
+    RemapAction(0x0B, "H", "Letters"),
+    RemapAction(0x0C, "I", "Letters"),
+    RemapAction(0x0D, "J", "Letters"),
+    RemapAction(0x0E, "K", "Letters"),
+    RemapAction(0x0F, "L", "Letters"),
+    RemapAction(0x10, "M", "Letters"),
+    RemapAction(0x11, "N", "Letters"),
+    RemapAction(0x12, "O", "Letters"),
+    RemapAction(0x13, "P", "Letters"),
+    RemapAction(0x14, "Q", "Letters"),
+    RemapAction(0x15, "R", "Letters"),
+    RemapAction(0x16, "S", "Letters"),
+    RemapAction(0x17, "T", "Letters"),
+    RemapAction(0x18, "U", "Letters"),
+    RemapAction(0x19, "V", "Letters"),
+    RemapAction(0x1A, "W", "Letters"),
+    RemapAction(0x1B, "X", "Letters"),
+    RemapAction(0x1C, "Y", "Letters"),
+    RemapAction(0x1D, "Z", "Letters"),
+
+    # Numbers (0x1E - 0x27)
+    RemapAction(0x1E, "1 !", "Numbers"),
+    RemapAction(0x1F, "2 @", "Numbers"),
+    RemapAction(0x20, "3 #", "Numbers"),
+    RemapAction(0x21, "4 $", "Numbers"),
+    RemapAction(0x22, "5 %", "Numbers"),
+    RemapAction(0x23, "6 ^", "Numbers"),
+    RemapAction(0x24, "7 &", "Numbers"),
+    RemapAction(0x25, "8 *", "Numbers"),
+    RemapAction(0x26, "9 (", "Numbers"),
+    RemapAction(0x27, "0 )", "Numbers"),
+
+    # Function Keys (0x3A - 0x45)
+    RemapAction(0x3A, "F1", "Function Keys"),
+    RemapAction(0x3B, "F2", "Function Keys"),
+    RemapAction(0x3C, "F3", "Function Keys"),
+    RemapAction(0x3D, "F4", "Function Keys"),
+    RemapAction(0x3E, "F5", "Function Keys"),
+    RemapAction(0x3F, "F6", "Function Keys"),
+    RemapAction(0x40, "F7", "Function Keys"),
+    RemapAction(0x41, "F8", "Function Keys"),
+    RemapAction(0x42, "F9", "Function Keys"),
+    RemapAction(0x43, "F10", "Function Keys"),
+    RemapAction(0x44, "F11", "Function Keys"),
+    RemapAction(0x45, "F12", "Function Keys"),
+
+    # Navigation & Control
+    RemapAction(0x28, "Enter", "Navigation & Control"),
+    RemapAction(0x29, "Escape", "Navigation & Control"),
+    RemapAction(0x2A, "Backspace", "Navigation & Control"),
+    RemapAction(0x2B, "Tab", "Navigation & Control"),
+    RemapAction(0x2C, "Spacebar", "Navigation & Control"),
+    RemapAction(0x39, "Caps Lock", "Navigation & Control"),
+    RemapAction(0x46, "Print Screen", "Navigation & Control"),
+    RemapAction(0x47, "Scroll Lock", "Navigation & Control"),
+    RemapAction(0x48, "Pause / Break", "Navigation & Control"),
+    RemapAction(0x49, "Insert", "Navigation & Control"),
+    RemapAction(0x4A, "Home", "Navigation & Control"),
+    RemapAction(0x4B, "Page Up", "Navigation & Control"),
+    RemapAction(0x4C, "Delete", "Navigation & Control"),
+    RemapAction(0x4D, "End", "Navigation & Control"),
+    RemapAction(0x4E, "Page Down", "Navigation & Control"),
+    RemapAction(0x4F, "Right Arrow", "Navigation & Control"),
+    RemapAction(0x50, "Left Arrow", "Navigation & Control"),
+    RemapAction(0x51, "Down Arrow", "Navigation & Control"),
+    RemapAction(0x52, "Up Arrow", "Navigation & Control"),
+
+    # Modifiers
+    RemapAction(0xE0, "Left Ctrl", "Modifiers"),
+    RemapAction(0xE1, "Left Shift", "Modifiers"),
+    RemapAction(0xE2, "Left Alt", "Modifiers"),
+    RemapAction(0xE3, "Left Win / Super", "Modifiers"),
+    RemapAction(0xE4, "Right Ctrl", "Modifiers"),
+    RemapAction(0xE5, "Right Shift", "Modifiers"),
+    RemapAction(0xE6, "Right Alt", "Modifiers"),
+    RemapAction(0xE7, "Right Win / Super", "Modifiers"),
+    RemapAction(0xAF, "Fn Key", "Modifiers"),
+
+    # Symbols & Punctuation
+    RemapAction(0x2D, "- _ (Minus)", "Symbols"),
+    RemapAction(0x2E, "= + (Equals)", "Symbols"),
+    RemapAction(0x2F, "[ {", "Symbols"),
+    RemapAction(0x30, "] }", "Symbols"),
+    RemapAction(0x31, "\\ |", "Symbols"),
+    RemapAction(0x33, "; :", "Symbols"),
+    RemapAction(0x34, "' \"", "Symbols"),
+    RemapAction(0x35, "` ~ (Grave / Tilde)", "Symbols"),
+    RemapAction(0x36, "< , (Comma)", "Symbols"),
+    RemapAction(0x37, "> . (Period)", "Symbols"),
+    RemapAction(0x38, "/ ? (Slash)", "Symbols"),
+
+    # Multimedia & Consumer Controls (Vendor IDs)
+    RemapAction(179, "Play / Pause", "Multimedia"),
+    RemapAction(180, "Stop", "Multimedia"),
+    RemapAction(181, "Previous Track", "Multimedia"),
+    RemapAction(182, "Next Track", "Multimedia"),
+    RemapAction(183, "Volume +", "Multimedia"),
+    RemapAction(184, "Volume -", "Multimedia"),
+    RemapAction(185, "Mute", "Multimedia"),
+
+    # Mouse Functions
+    RemapAction(170, "Mouse Left Click", "Mouse"),
+    RemapAction(173, "Mouse Right Click", "Mouse"),
+    RemapAction(172, "Mouse Middle Click", "Mouse"),
+    RemapAction(174, "Mouse Double Click", "Mouse"),
+    RemapAction(175, "Mouse Scroll Up", "Mouse"),
+    RemapAction(176, "Mouse Scroll Down", "Mouse"),
+    RemapAction(177, "Mouse Button 4 (Back)", "Mouse"),
+    RemapAction(178, "Mouse Button 5 (Forward)", "Mouse"),
+
+    # Special / Disabled
+    RemapAction(0x00, "Disabled (No Action)", "Special"),
+]
+
+# Action lookup by code
+ACTION_BY_CODE: dict[int, RemapAction] = {a.code: a for a in REMAP_ACTIONS}
+

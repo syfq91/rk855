@@ -94,9 +94,12 @@ python3 rk855_gui.py
 
 # Launch in Simulator / Demo mode (offline preview)
 python3 rk855_gui.py --mock
+
+# Jump directly to Key Remapping tab
+python3 rk855_gui.py --remap
 ```
 
-The GUI provides an interactive 68-key physical keyboard layout for per-key RGB coloring, full controls for all 20 built-in lighting effects, and a safe ISP firmware flasher with live progress bar and terminal logs.
+The GUI provides an interactive 68-key physical keyboard layout for per-key RGB coloring and button remapping (standard HID keys, multimedia, mouse actions, disable keys), full controls for all 20 built-in lighting effects, and a safe ISP firmware flasher with live progress bar and terminal logs.
 
 ### 3.4 Backlight CLI Control (`rk855_ctl.py`)
 Control backlight modes, custom RGB colors, brightness, and speed from the terminal:

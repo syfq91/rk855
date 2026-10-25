@@ -31,6 +31,10 @@ class KeyboardView(QWidget):
         self._selected_indices: set[int] = set()
         self._hover_index: int | None = None
 
+        # Key remapping state: scancode -> remapped label
+        self._remap_mode: bool = False
+        self._remap_labels: dict[int, str] = {}
+
         # Drag selection state
         self._is_dragging: bool = False
         self._drag_start: QPointF | None = None
@@ -80,6 +84,17 @@ class KeyboardView(QWidget):
         self._selected_indices.clear()
         self.selection_changed.emit([])
         self.update()
+
+    def set_remap_mode(self, enabled: bool) -> None:
+        self._remap_mode = enabled
+        self.update()
+
+    def set_remap_labels(self, labels: dict[int, str]) -> None:
+        self._remap_labels = dict(labels)
+        self.update()
+
+    def get_remap_labels(self) -> dict[int, str]:
+        return dict(self._remap_labels)
 
     def _get_transform(self) -> tuple[float, float, float]:
         """Calculates scale factor and offsets to maintain aspect ratio."""
@@ -163,14 +178,35 @@ class KeyboardView(QWidget):
             painter.drawRoundedRect(indicator_rect, 2, 2)
 
             # Keycap Label Text
-            painter.setFont(QFont("Segoe UI", max(7, int(10 * scale)), QFont.Weight.Bold))
-            if is_selected:
-                painter.setPen(QColor(255, 255, 255))
-            else:
-                painter.setPen(QColor(210, 215, 225))
+            remap_target = self._remap_labels.get(key.scancode)
+            if remap_target is not None:
+                # Accent badge dot at top-right
+                badge_rect = QRectF(rect.right() - 8 * scale, rect.top() + 3 * scale, 5 * scale, 5 * scale)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QBrush(QColor(240, 170, 50)))
+                painter.drawEllipse(badge_rect)
 
-            text_rect = rect.adjusted(0, -2 * scale, 0, -4 * scale)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, key.label)
+            if self._remap_mode and remap_target is not None:
+                # Top: original key name
+                orig_font = QFont("Segoe UI", max(6, int(7.5 * scale)))
+                painter.setFont(orig_font)
+                painter.setPen(QColor(160, 165, 175))
+                painter.drawText(QRectF(rect.left(), rect.top() + 2 * scale, rect.width(), rect.height() * 0.45), Qt.AlignmentFlag.AlignCenter, key.label)
+
+                # Bottom: remapped action
+                remap_font = QFont("Segoe UI", max(7, int(9 * scale)), QFont.Weight.Bold)
+                painter.setFont(remap_font)
+                painter.setPen(QColor(240, 180, 50))
+                painter.drawText(QRectF(rect.left(), rect.top() + rect.height() * 0.45, rect.width(), rect.height() * 0.45), Qt.AlignmentFlag.AlignCenter, remap_target)
+            else:
+                painter.setFont(QFont("Segoe UI", max(7, int(10 * scale)), QFont.Weight.Bold))
+                if is_selected:
+                    painter.setPen(QColor(255, 255, 255))
+                else:
+                    painter.setPen(QColor(210, 215, 225))
+
+                text_rect = rect.adjusted(0, -2 * scale, 0, -4 * scale)
+                painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, key.label)
 
         # Drag selection rubber band
         if self._is_dragging and self._drag_start and self._drag_current:
@@ -233,9 +269,12 @@ class KeyboardView(QWidget):
                 key = PHYSICAL_KEYS[idx]
                 r, g, b = self._key_colors[idx]
                 hex_col = f"#{r:02X}{g:02X}{b:02X}"
+                remap_info = ""
+                if key.scancode in self._remap_labels:
+                    remap_info = f"<br/><b style='color: #e5c07b;'>Remapped to:</b> {self._remap_labels[key.scancode]}"
                 QToolTip.showText(
                     event.globalPosition().toPoint(),
-                    f"<b>{key.label}</b> (Key {idx}, Code: 0x{key.scancode:02X})<br/>RGB: {hex_col}",
+                    f"<b>{key.label}</b> (Key {idx}, Code: 0x{key.scancode:02X})<br/>RGB: {hex_col}{remap_info}",
                     self,
                 )
 

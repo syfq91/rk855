@@ -15,6 +15,9 @@ python3 rk855_gui.py
 # Launch in Simulator / Demo mode (offline preview without physical keyboard)
 python3 rk855_gui.py --mock
 
+# Jump directly to Key Remapping tab
+python3 rk855_gui.py --remap
+
 # Jump directly to Firmware Flasher tab
 python3 rk855_gui.py --flasher
 ```
@@ -22,6 +25,7 @@ python3 rk855_gui.py --flasher
 ### Features:
 - **💡 Backlight & Effects**: Full control of all 20 built-in lighting algorithms, brightness (0–4), speed (0–4), direction, and RGB palette / hex color selection.
 - **🎨 Per-Key RGB Studio**: Interactive vector 68-key keyboard view matching the physical RK855 layout. Click keys, box-select, or use quick presets (WASD, Arrow Keys, Modifiers, Numbers), assign colors, and upload the per-key matrix to onboard flash.
+- **⌨️ Key Remapping**: Custom button mapping for any of the 68 physical switches. Map to standard HID keys (Letters, Numbers, Function keys, Navigation, Modifiers, Symbols), Multimedia controls (Play/Pause, Volume+, Volume-, Mute), Mouse actions (Clicks, Scroll), or Disable keys. Active remapping table with one-click restore and onboard EEPROM commit.
 - **⚡ Firmware Flasher**: Select official or custom `.hex` / `.bin` firmware files, transition into the Sonix ISP bootloader, execute erase/flash/verification cycles with live progress and ISP console logging, and reboot back into normal operating mode.
 - **ℹ️ Device & udev Help**: Real-time USB mode detection and non-root Linux udev rule installer.
 

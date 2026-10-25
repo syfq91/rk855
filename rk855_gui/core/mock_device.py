@@ -26,8 +26,11 @@ class MockRK855Device:
         self.color = (255, 0, 255)
         self.direction = 0
         self.per_key_colors = [(255, 0, 255)] * 68
+        self.remap_table: dict[int, int] = {}
         self.flash_memory = bytearray([0xFF] * FLASH_LIMIT)
         self.sent_packets: list[bytes] = []
+        self._receiving_remap = False
+        self._remap_buffer = bytearray()
 
     def open(self) -> None:
         self.is_open = True
@@ -39,7 +42,7 @@ class MockRK855Device:
         data = bytes(payload)
         self.sent_packets.append(data)
 
-        # Parse lighting commands
+        # Parse lighting and remap commands
         if len(data) >= 2 and data[0] == 0x04:
             subcmd = data[1]
             if subcmd == 0x11 and len(data) >= 10:
@@ -48,6 +51,20 @@ class MockRK855Device:
                 self.brightness = data[7]
                 self.speed = data[8]
                 self.direction = data[9]
+            elif subcmd == 0x20:
+                self._receiving_remap = True
+                self._remap_buffer = bytearray()
+            elif subcmd == 0x02:
+                if self._receiving_remap and self._remap_buffer:
+                    # Parse remap entries
+                    for i in range(0, min(len(self._remap_buffer), 256), 2):
+                        p = self._remap_buffer[i]
+                        t = self._remap_buffer[i + 1]
+                        if p != 0:
+                            self.remap_table[p] = t
+                    self._receiving_remap = False
+        elif self._receiving_remap:
+            self._remap_buffer.extend(data[:64])
 
     def get_feature(self, report_id: int = 0x00, length: int = 65) -> bytes:
         # Default mock response with ISP ACK header

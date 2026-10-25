@@ -58,8 +58,13 @@ def main():
         help="Open GUI directly to the Firmware Flasher tab",
     )
     parser.add_argument(
+        "--remap",
+        action="store_true",
+        help="Open GUI directly to the Key Remapping tab",
+    )
+    parser.add_argument(
         "--tab",
-        choices=["lighting", "perkey", "flasher", "info"],
+        choices=["lighting", "perkey", "remap", "flasher", "info"],
         default=None,
         help="Specify which tab to open on startup",
     )
@@ -84,15 +89,19 @@ def main():
 
     tab_index = 0
     if args.flasher:
+        tab_index = 3
+    elif args.remap:
         tab_index = 2
     elif args.tab == "lighting":
         tab_index = 0
     elif args.tab == "perkey":
         tab_index = 1
-    elif args.tab == "flasher":
+    elif args.tab == "remap":
         tab_index = 2
-    elif args.tab == "info":
+    elif args.tab == "flasher":
         tab_index = 3
+    elif args.tab == "info":
+        tab_index = 4
 
     window = MainWindow(mock=args.mock, initial_tab=tab_index)
     window.show()

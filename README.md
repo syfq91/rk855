@@ -62,17 +62,29 @@ rk855/
 ## 3. Quickstart & CLI Tools
 
 ### 3.1 Installation
-Clone the repository and install the Python dependencies:
 
+#### Option A: Using `uv` (Recommended — Fast & Self-Managing)
+Install [uv](https://docs.astral.sh/uv/) (no manual virtualenv activation needed):
+
+```bash
+# Install uv (Linux/macOS)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone repository
+git clone https://github.com/syfq91/rk855.git
+cd rk855
+
+# Sync project dependencies
+uv sync
+```
+
+#### Option B: Standard Python (pip & venv)
 ```bash
 git clone https://github.com/syfq91/rk855.git
 cd rk855
 
-# Optional: Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -r tools/requirements.txt
 ```
 
@@ -89,14 +101,19 @@ sudo udevadm trigger
 Launch the cross-platform desktop configurator & firmware flasher:
 
 ```bash
-# Launch GUI
-python3 rk855_gui.py
+# With uv (recommended)
+uv run rk855-gui
+# Or: uv run rk855_gui.py
+# Or directly: ./rk855_gui.py
 
 # Launch in Simulator / Demo mode (offline preview)
-python3 rk855_gui.py --mock
+uv run rk855-gui --mock
 
 # Jump directly to Key Remapping tab
-python3 rk855_gui.py --remap
+uv run rk855-gui --remap
+
+# Jump directly to Firmware Flasher tab
+uv run rk855-gui --flasher
 ```
 
 The GUI provides an interactive 68-key physical keyboard layout for per-key RGB coloring and button remapping (standard HID keys, multimedia, mouse actions, disable keys), full controls for all 20 built-in lighting effects, and a safe ISP firmware flasher with live progress bar and terminal logs.

@@ -930,6 +930,16 @@ class MainWindow(QMainWindow):
         udev_layout.addWidget(btn_copy_udev)
 
         layout.addWidget(udev_group)
+
+        # uv tooling tip
+        tool_group = QGroupBox("Modern Python Environment (uv)")
+        tool_layout = QVBoxLayout(tool_group)
+        tool_layout.addWidget(QLabel(
+            "This repository uses <b>uv</b> for project and dependency management.<br/>"
+            "Run <code>uv sync</code> to install dependencies, and <code>uv run rk855-gui</code> to launch the app."
+        ))
+        layout.addWidget(tool_group)
+
         layout.addStretch()
         return tab
 

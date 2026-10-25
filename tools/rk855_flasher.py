@@ -1,4 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "hidapi>=0.14.0",
+#     "intelhex>=2.3.0",
+# ]
+# ///
 """
 Royal Kludge RK855 (Sonix SN32F240B) In-System Programming (ISP) Flasher Tool
 Reverse-engineered from the official Windows firmware updater utility.

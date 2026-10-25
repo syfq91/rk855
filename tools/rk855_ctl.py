@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "hidapi>=0.14.0",
+# ]
+# ///
 """
 Royal Kludge RK855 (RK68) RGB Backlight & Device Control Tool
 Reverse-engineered from the official Windows configurator software.

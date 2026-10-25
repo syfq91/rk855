@@ -9,17 +9,19 @@ This folder provides cross-platform graphical and command-line tools to control 
 A full-featured, dark-themed desktop application built with PyQt6.
 
 ```bash
-# Launch GUI
-python3 rk855_gui.py
+# Launch GUI with uv
+uv run rk855-gui
+# Or: uv run rk855_gui.py
+# Or directly via PEP 723: ./rk855_gui.py
 
 # Launch in Simulator / Demo mode (offline preview without physical keyboard)
-python3 rk855_gui.py --mock
+uv run rk855-gui --mock
 
 # Jump directly to Key Remapping tab
-python3 rk855_gui.py --remap
+uv run rk855-gui --remap
 
 # Jump directly to Firmware Flasher tab
-python3 rk855_gui.py --flasher
+uv run rk855-gui --flasher
 ```
 
 ### Features:
@@ -33,14 +35,16 @@ python3 rk855_gui.py --flasher
 
 ## 2. Prerequisites & Installation
 
-The tools require Python 3.9+ and `hidapi` (plus `intelhex` for parsing `.hex` firmware files).
-
+### Option A: Using `uv` (Recommended)
 ```bash
-# 1. Create and activate a virtual environment
+# Sync dependencies automatically
+uv sync
+```
+
+### Option B: Standard Python (pip & venv)
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
-
-# 2. Install dependencies
 pip install -r tools/requirements.txt
 ```
 
@@ -55,16 +59,16 @@ sudo udevadm trigger
 
 ---
 
-## 2. RGB Backlight Control (`rk855_ctl.py`)
+## 3. RGB Backlight Control (`rk855_ctl.py`)
 
 Controls the onboard lighting engine via 65-byte USB HID Feature Reports.
 
 ```bash
-# Scan and identify connected RK855 keyboard
-python3 tools/rk855_ctl.py info
+# Scan and identify connected RK855 keyboard (with uv)
+uv run tools/rk855_ctl.py info
 
 # List all 20 built-in hardware lighting effects
-python3 tools/rk855_ctl.py list-modes
+uv run tools/rk855_ctl.py list-modes
 
 # Set solid static color using hex, color name, or RGB
 python3 tools/rk855_ctl.py color cyan
@@ -78,27 +82,27 @@ python3 tools/rk855_ctl.py mode 6 --color green --speed 3 --brightness 4
 python3 tools/rk855_ctl.py mode 14 --color "#00E5FF" --brightness 4 --speed 2
 
 # Turn off backlight completely
-python3 tools/rk855_ctl.py off
+uv run tools/rk855_ctl.py off
 ```
 
 ---
 
-## 3. In-System Programming (ISP) Flasher (`rk855_flasher.py`)
+## 4. In-System Programming (ISP) Flasher (`rk855_flasher.py`)
 
 Interacts with the microcontroller's ROM bootloader via the reverse-engineered Sonix ISP protocol.
 
 ```bash
 # Check if keyboard is in normal operating mode or bootloader mode
-python3 tools/rk855_flasher.py info
+uv run tools/rk855_flasher.py info
 
 # Trigger bootloader mode from user space (keyboard resets to VID 0x0C45 / PID 0x82AA)
-python3 tools/rk855_flasher.py bootloader
+uv run tools/rk855_flasher.py bootloader
 
 # Flash factory firmware (.hex or .bin) with erase, page writes, and verification
-python3 tools/rk855_flasher.py flash firmware/SN32F240B_32.hex
+uv run tools/rk855_flasher.py flash firmware/SN32F240B_32.hex
 
 # Reboot microcontroller back to user keyboard mode
-python3 tools/rk855_flasher.py reboot
+uv run tools/rk855_flasher.py reboot
 ```
 
 > [!WARNING]

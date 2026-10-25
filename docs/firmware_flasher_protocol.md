@@ -130,7 +130,7 @@ The executable bundles the complete factory firmware inside its PE resource tabl
 
 ### 5.1 Embedded ZIP Container (`RT_RCDATA` ID 4011)
 Located at file offset `0x001BC3A8` (size: 96,771 bytes), extracted to:
-`/home/syafiq/rk855/extracted_flasher_fw/`
+`vendor/flasher/` (with firmware image placed in `firmware/`)
 
 Key extracted files:
 1. **`Settings\FWFiles\SN32F240B_32.hex`** (166,843 bytes):

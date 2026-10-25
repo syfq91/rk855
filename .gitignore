@@ -10,3 +10,14 @@ __pycache__/
 *$py.class
 .venv/
 venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Editor artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

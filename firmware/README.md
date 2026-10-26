@@ -8,7 +8,7 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 
 | File | Format | File Size | Memory Span | SHA-256 Checksum | MD5 Checksum |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`SN32F240B_32.hex`** | Intel HEX | 166,843 bytes | `0x00000000` - `0x00007FFF` | `ba0f38cb1276077959f8851b2bd38db524d495c980837e549f91ed8ba1d592f0` | `f9e74d03875b600e44573e89338838dc` |
+| **`SN32F240B_32.hex`** | Intel HEX | 166,843 bytes | `0x00000000` - `0x0000FFFF` | `ba0f38cb1276077959f8851b2bd38db524d495c980837e549f91ed8ba1d592f0` | `f9e74d03875b600e44573e89338838dc` |
 | **`SN32F240B_32.bin`** | Raw Binary | 65,536 bytes | `0x00000000` - `0x0000FFFF` | `1e1be3a56ba5785cbd3922c9eb2ae08748796bdba6fd4e5e87df336bea311ab6` | `de2e1ffdd04c61d45637ae749c2ccfac` |
 
 ---
@@ -17,12 +17,13 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 
 - **Microcontroller**: SONiX SN32F240B (or pin-compatible SN32F248B)
 - **CPU Core**: ARM Cortex-M0 (ARMv6-M Thumb-2, 32-bit RISC) @ 48 MHz
-- **Flash ROM**: 64 KB total (Active code occupies first 32 KB, `0x00000000`–`0x00007FFF`)
+- **Flash ROM**: 64 KB total (57,600 bytes populated across `0x00000000`–`0x0000FFFF` including code, factory presets, user profiles, and integrity footer)
 - **Page Size**: 64 bytes (ISP write unit)
 - **SRAM**: 8 KB (`0x20000000` – `0x20001FFF`)
 - **Initial Vector Table**:
-  - `SP` (Stack Pointer): `0x20002000` (Top of 8 KB SRAM)
-  - `Reset_Handler`: `0x00000109` (Thumb entry address `0x00000108`)
+  - `SP` (Stack Pointer): `0x200015B0` (Initialized in SRAM)
+  - `Reset_Handler`: `0x000066D1` (Thumb entry address `0x000066D0`)
+  *(Note: The value `0x0109` found in `UISettings.ini` corresponds to firmware version v1.09, not the reset vector).*
 
 ---
 
@@ -33,13 +34,22 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 | Vector Table (192 bytes) |
 +--------------------------+ 0x000000C0
 | Firmware Code & Assets   |
-| - USB Descriptors        |
+| - USB Descriptors (0x6ABC)|
 | - Matrix Scan Engine     |
-| - SPI RGB Lighting Engine|
-+--------------------------+ 0x00007FFF (32 KB boundary)
-| Unused / Padding (0xFF)  |
-+--------------------------+ 0x0000F800
-| Persistent Config / EEPROM|
+| - SPI Master Controller  |
++--------------------------+ 0x000071FF (29,184 B Code)
+| Factory Presets & Layout | 0x00007000 - 0x0000757F
++--------------------------+ 0x00007580
+| RGB Animation Tables     | (Gamma curves, palettes)
++--------------------------+ 0x000081FF
+| Padding (0xFF)           |
++--------------------------+ 0x00008580
+| Onboard User Profiles    | (Keymaps, custom lighting,
+| & Macro Flash Storage    |  and macros to 0x0000E7BF)
++--------------------------+ 0x0000E7BF
+| Unused Flash (0xFF)      |
++--------------------------+ 0x0000FFC0
+| Flash Config & Checksum  | (64 bytes integrity footer)
 +--------------------------+ 0x0000FFFF (64 KB Flash Limit)
 ```
 

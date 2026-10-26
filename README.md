@@ -13,9 +13,9 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 | **Keyboard Model** | Royal Kludge RK855 / RK68 (65% layout, 68 physical keys) |
 | **Microcontroller (MCU)** | **SONiX SN32F240B** (pin-compatible with SN32F248B) |
 | **CPU Architecture** | ARM Cortex-M0 (ARMv6-M Thumb) running up to 48 MHz |
-| **Flash Memory** | 64 KB total on-chip Flash (32 KB active firmware: `0x00000000`–`0x00007FFF`) |
-| **SRAM** | 8 KB (`0x20000000` – `0x20001FFF`, Stack Top: `0x20002000`) |
-| **USB Operating VID / PID** | `0x0C45` : `0x8018` (Normal Keyboard Mode) |
+| **Flash Memory** | 64 KB total on-chip Flash (57.6 KB populated: `0x00000000`–`0x0000FFFF` across code, presets, and user data) |
+| **SRAM** | 8 KB (`0x20000000` – `0x20001FFF`, Initial Stack Pointer: `0x200015B0`) |
+| **USB Operating VID / PID** | `0x05AC` : `0x024F` (Factory ROM Default Profile) / `0x0C45` : `0x8018` (Windows Vendor Utility Filter) |
 | **USB Bootloader VID / PID**| `0x0C45` : `0x82AA` (Sonix ISP Bootloader Mode) |
 | **Switch Matrix** | 8 Rows × 9 Columns multiplexed matrix (68 diode-isolated switches) |
 | **LED Backlight Subsystem** | Multiplexed LED matrix driven via CT16B1 16-bit PWM timers (`0x40002040`) across 18 scanning phases (6 rows × 3 color phases: R, G, B) |
@@ -179,31 +179,31 @@ A standard lighting configuration sequence consists of four atomic packets:
 4. **Live Synchronization**: `0x04 0xF0`
 
 ### 4.2 Built-in RGB Lighting Modes
-| ID | Mode Name | Description |
-| :---: | :--- | :--- |
-| `0` | **Static** | Continuous solid color illumination across all keys. |
-| `1` | **Single On** | Reactive lighting: pressed keys illuminate and fade. |
-| `2` | **Single Off** | Inverted reactive: keys turn off upon press. |
-| `3` | **Glittering** | Random keys twinkle independently. |
-| `4` | **Falling** | Rain-like vertical color cascade. |
-| `5` | **Color Cycling** | Full keyboard smooth RGB hue transition. |
-| `6` | **Breathing** | Pulsing fade in and fade out. |
-| `7` | **Spectrum** | Color cycling across spectrum. |
-| `8` | **Outward** | Center-out radial expansion. |
-| `9` | **Scrolling** | Horizontal wave scrolling. |
-| `10` | **Wave** | Continuous rainbow angular wave. |
-| `11` | **Accumulate** | Keys progressively fill up the board. |
-| `12` | **Windmill** | Rotating angular color wheel. |
-| `13` | **Colorful Waterfall** | Vertical dual-tone waterfall. |
-| `14` | **Blossoming / Ripples** | Key press generates expanding circular ripple. |
-| `15` | **Flowing** | Stream-like linear color movement. |
-| `16` | **Constant Rainbow** | Static multi-colored gradient matrix. |
-| `17` | **Sine Wave** | Sinusoidal oscillating brightness wave. |
-| `18` | **Shadow** | Trailing shadows following key releases. |
-| `19` | **Backlight Off** | All LEDs disabled. |
+| ID | Mode Name (Display / Descriptive) | Vendor String (`1033.lan`) | Description |
+| :---: | :--- | :--- | :--- |
+| `0` | **Static** | `Static` | Continuous solid color illumination across all keys. |
+| `1` | **Single On** | `SingleOn` | Reactive lighting: pressed keys illuminate and fade. |
+| `2` | **Single Off** | `SingleOff` | Inverted reactive: keys turn off upon press. |
+| `3` | **Glittering** | `Glittering` | Random keys twinkle independently. |
+| `4` | **Falling** | `Falling` | Rain-like vertical color cascade. |
+| `5` | **Color Cycling** | `Colourful` | Full keyboard smooth RGB hue transition. |
+| `6` | **Breathing** | `Breath` | Pulsing fade in and fade out. |
+| `7` | **Spectrum** | `Spectrum` | Color cycling across spectrum. |
+| `8` | **Outward** | `Outward` | Center-out radial expansion. |
+| `9` | **Scrolling** | `Scrolling` | Horizontal wave scrolling. |
+| `10` | **Wave** | `Rolling` | Continuous rainbow angular wave. |
+| `11` | **Accumulate** | `Rotating` | Keys progressively fill up the board. |
+| `12` | **Windmill** | `Explode` | Rotating angular color wheel. |
+| `13` | **Colorful Waterfall** | `Launch` | Vertical dual-tone waterfall. |
+| `14` | **Blossoming / Ripples** | `Ripples` | Key press generates expanding circular ripple. |
+| `15` | **Flowing** | `Flowing` | Stream-like linear color movement. |
+| `16` | **Constant Rainbow** | `Pulsating` | Static multi-colored gradient matrix. |
+| `17` | **Sine Wave** | `Tilt` | Sinusoidal oscillating brightness wave. |
+| `18` | **Shadow** | `Shuttle` | Trailing shadows following key releases. |
+| `19` | **Backlight Off** | `Close Backlight` | All LEDs disabled. |
 
 ### 4.3 Bootloader Unlock Command
-To switch from user firmware into the Sonix ISP bootloader, issue this 9-byte Feature Report to `VID: 0x0C45`, `PID: 0x8018`:
+To switch from user firmware into the Sonix ISP bootloader, issue this 9-byte Feature Report to `VID: 0x05AC`, `PID: 0x024F` or `VID: 0x0C45`, `PID: 0x8018`:
 ```
 0x00 0xAA 0x42 0x89 0x5A 0xFF 0x71 0x62 0xCC
 ```

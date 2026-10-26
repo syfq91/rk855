@@ -22,16 +22,19 @@ The analysis was performed using **REA (Reverse Engineer Anything)**, static PE 
 - **Flash Memory**: 64 KB (Page size: 64 bytes / 256 bytes depending on sector)
 - **SRAM**: 8 KB (Base address: `0x20000000`)
 - **ROM / Bootloader Base**: Flash base at `0x00000000`
-- **Initial Vector Table**:
+- **Initial Vector Table (Application Firmware `SN32F240B_32.bin`)**:
+  - Initial Stack Pointer (SP): `0x200015B0` (Initialized in SRAM)
+  - Reset Handler: `0x000066D1` (Thumb entry address `0x000066D0`)
+- **Flasher Embedded RAM Agent Vector Table** (at offset `0x001AC378` in `RK855_firmware_flasher.exe`):
   - Initial Stack Pointer (SP): `0x20000728`
   - Reset Handler: `0x000000D9`
 
 ### 2.3 USB Device Identifiers
 | Mode | Vendor ID (VID) | Product ID (PID) | Device Name / Description |
 | :--- | :--- | :--- | :--- |
-| **Normal Keyboard Mode** | `0x0C45` | `0x8018` | Royal Kludge RK855 / RK68 USB Keyboard |
+| **Factory ROM Default (Apple Profile)** | `0x05AC` | `0x024F` | Compiled factory descriptor in ROM (Mac / BIOS compatible) |
+| **Windows Vendor Tool Matching** | `0x0C45` | `0x8018` | Target profile in Windows configurator & flasher inf |
 | **Alternative Normal VID/PID** | `0x0C45` | `0x8016`, `0x8008` | RK variant firmware |
-| **Apple/Mac Compatibility Mode** | `0x05AC` | `0x024F` | Mac HID Keyboard profile |
 | **Sonix ISP Bootloader Mode** | `0x0C45` | `0x7000` – `0x7800` / `0x82AA` | Sonix SN32F24x USB Bootloader Device |
 
 ---

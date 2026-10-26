@@ -14,7 +14,7 @@ Using **REA (Reverse Engineer Anything)**, ARM Cortex-M disassemblers, and Sonix
 - **Source File**: `SN32F240B_32.hex` (Intel HEX format, 166,843 bytes)
 - **Converted Flat Binary**: `SN32F240B_32.bin` (65,536 bytes / exactly 64 KB)
 - **Address Span**: `0x00000000` to `0x0000FFFF` (covers full 64 KB on-chip flash)
-- **Active Code & Data**: 57,051 bytes (55.71 KB utilized, remainder `0xFF`)
+- **Active Code & Data**: 57,600 bytes (56.25 KB utilized across 4 populated flash sectors, remainder `0xFF`)
 - **Target CPU**: **ARM Cortex-M0** (ARMv6-M Thumb instruction set, little-endian)
 - **Microcontroller**: **SONiX SN32F240B** / SN32F248B
 
@@ -162,14 +162,16 @@ One of the most critical mechanisms discovered in the firmware is how it safely 
 Inside the EP0 setup packet handler at address `0x00001790`:
 
 ```asm
-00001790: 6940      ldr r0, [r0, #20]       ; Load first 4 bytes of incoming payload
-00001794: 4943      ldr r1, [pc, #268]      ; Load 0x5A8942AA (literal at 0x18A4)
-00001796: 4288      cmp r0, r1              ; Check bytes: AA 42 89 5A
-00001798: d10f      bne.n 0x17BA            ; Fail if mismatch
-0000179A: 6980      ldr r0, [r0, #24]       ; Load next 4 bytes of incoming payload
-0000179E: 4942      ldr r1, [pc, #264]      ; Load 0xCC6271FF (literal at 0x18A8)
-000017A0: 4288      cmp r0, r1              ; Check bytes: FF 71 62 CC
-000017A2: d10a      bne.n 0x17BA            ; Fail if mismatch
+00001790: 0846      mov r0, r1              ; r1 = 0x200002A8 (EP0 buffer base address)
+00001792: 4069      ldr r0, [r0, #20]       ; Load first 4 bytes of incoming payload (+0x14)
+00001794: 4349      ldr r1, [pc, #268]      ; Load 0x5A8942AA (literal at 0x18A4)
+00001796: 8842      cmp r0, r1              ; Check bytes: AA 42 89 5A
+00001798: 0fd1      bne.n 0x17BA            ; Fail if mismatch
+0000179A: 4148      ldr r0, [pc, #260]      ; Reload buffer pointer 0x200002A8 (literal at 0x18A0)
+0000179C: 8069      ldr r0, [r0, #24]       ; Load next 4 bytes of incoming payload (+0x18)
+0000179E: 4249      ldr r1, [pc, #264]      ; Load 0xCC6271FF (literal at 0x18A8)
+000017A0: 8842      cmp r0, r1              ; Check bytes: FF 71 62 CC
+000017A2: 0ad1      bne.n 0x17BA            ; Fail if mismatch
 ```
 
 ### 6.2 Bootloader Execution
@@ -198,11 +200,13 @@ This proves conclusively that the `CheckDeviceCmd` command from the flasher trig
 The matrix scanner function begins at `0x00004592` and is called periodically by the main loop.
 
 ### 7.1 Pin Mapping
-- **Row Drive Lines (Outputs)**:
-  - Port 0 (`0x40044000`): Pins `P0.8`, `P0.9`, `P0.10`, `P0.11`, `P0.12`, `P0.13`, `P0.14`, `P0.15`
-  - Port 1 (`0x40046000`): Pins `P1.0`, `P1.1`, `P1.2`, `P1.3`, `P1.4`
-- **Column Sense Lines (Inputs with Pull-Ups)**:
-  - Port 3 (`0x4004A000`): Pins `P3.0`, `P3.1`, `P3.2`, `P3.3`, `P3.4`, `P3.5`, `P3.6`, `P3.7`, `P3.8`, `P3.9`, `P3.10`, `P3.11`
+- **Switch Matrix (8 Rows × 9 Columns = 68 Switches)**:
+  - **Row Drive Lines (Outputs)**: Port 0 (`0x40044000`): Pins `P0.8`, `P0.9`, `P0.10`, `P0.11`, `P0.12`, `P0.13`, `P0.14`, `P0.15` (8 row lines)
+  - **Column Sense Lines (Inputs with Pull-Ups)**: Port 3 (`0x4004A000`): Pins `P3.0` through `P3.8` (9 column sense lines)
+- **Dedicated SPI Master Lines (`SN_SSP0` at `0x4001C000`)**:
+  - `P1.0`: `SSP0_SCK` (Serial Clock)
+  - `P1.1`: `SSP0_MOSI` (Master Out Slave In)
+  *(Note: P1.0 and P1.1 are dedicated hardware SPI signals for the high-speed LED driver communication and do not share lines with switch matrix rows).*
 
 ### 7.2 Scanning Mechanism
 1. Active row lines are driven LOW one at a time.

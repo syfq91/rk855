@@ -145,8 +145,12 @@ To set custom static RGB illumination per individual key:
 2. Send Header: `[0x00, 0x04, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, ...0x00]`
 3. Send RGB Matrix:
    - Total Data Size: **1,216 bytes** (`0x4C0`)
-   - Transmitted as **19 consecutive 64-byte HID reports**.
-   - Each key is assigned 3 bytes: `[R, G, B]`, indexed by its matrix position.
+   - Transmitted as **19 consecutive 64-byte HID reports** (`19 * 64 = 1,216 bytes`).
+   - Frame Structure: Structured as **76 records of 16 bytes each** (`76 * 16 = 1,216 bytes`):
+     - Byte 0: Key status / mode flag (`0x80` active)
+     - Bytes 1–3: Red, Green, Blue color components
+     - Bytes 8–11: Key attribute and parameter indices
+     - Bytes 14–15: Fixed delimiter magic bytes `0xAA, 0x55`
 4. Send Commit: `[0x00, 0x04, 0x02, ...0x00]`
 5. Send Reload: `[0x00, 0x04, 0xF0, ...0x00]`
 

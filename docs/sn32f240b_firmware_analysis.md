@@ -14,7 +14,7 @@ Using **REA (Reverse Engineer Anything)**, ARM Cortex-M disassemblers, and Sonix
 - **Source File**: `SN32F240B_32.hex` (Intel HEX format, 166,843 bytes)
 - **Converted Flat Binary**: `SN32F240B_32.bin` (65,536 bytes / exactly 64 KB)
 - **Address Span**: `0x00000000` to `0x0000FFFF` (covers full 64 KB on-chip flash)
-- **Active Code & Data**: 57,600 bytes (56.25 KB utilized across 4 populated flash sectors, remainder `0xFF`)
+- **Active Code & Data**: 59,292 bytes populated in HEX across `0x00000000`–`0x0000E797` and `0x0000FFFC`–`0x0000FFFF` (56,088 non-0xFF bytes in 64 KB flat binary; 6,244 bytes unpopulated 0xFF padding between `0x0000E798`–`0x0000FFFB`)
 - **Target CPU**: **ARM Cortex-M0** (ARMv6-M Thumb instruction set, little-endian)
 - **Microcontroller**: **SONiX SN32F240B** / SN32F248B
 
@@ -35,7 +35,11 @@ Using **REA (Reverse Engineer Anything)**, ARM Cortex-M disassemblers, and Sonix
 +---------------------+ 0x00008580
 |  Flash Storage Area |  (User keymaps, custom lighting, recorded macros)
 +---------------------+ 0x00009000
-|  Device Config Area |  (Hardware ID overrides, USB descriptors)
+|  Device Config Area |  (Hardware ID overrides, USB descriptors to 0x0000E797)
++---------------------+ 0x0000E798
+|  Unused Flash (0xFF)|  (6,244 bytes unwritten erase space)
++---------------------+ 0x0000FFFC
+|  Flash Integrity    |  (4-byte Sonix security/integrity word 0xAAAA5555)
 +---------------------+ 0x0000FFFF
 ```
 
@@ -44,10 +48,12 @@ Using **REA (Reverse Engineer Anything)**, ARM Cortex-M disassemblers, and Sonix
 - **Initial Stack Pointer (SP)**: `0x200015B0` (Stack grows downward from `0x200015B0`)
 - **Variables & Buffers**:
   - `0x200000B8` – `0x200000DC`: USB Endpoint 0 setup buffer & state machine.
-  - `0x2000012C` – `0x200001AC`: HID input report staging buffer (Keyboard NKRO & Mouse).
-  - `0x20000270` – `0x200002A8`: USB transfer descriptors & command buffers.
-  - `0x2000096C` – `0x20000B64`: Active key matrix debounced state buffers.
-  - `0x20000E66` – `0x20001400`: RGB LED framebuffer (per-key RGB values).
+  - `0x2000012C` – `0x200001AC`: Active key matrix debounced state & HID report staging buffers.
+  - `0x20000270` – `0x200002A8`: USB transfer descriptors & EP0 command staging buffers.
+  - `0x2000096C` – `0x20000A67`: Red LED row PWM duty cycle buffer (6 rows × 42 bytes = 252 bytes).
+  - `0x20000A68` – `0x20000B63`: Green LED row PWM duty cycle buffer (252 bytes).
+  - `0x20000B64` – `0x20000C5F`: Blue LED row PWM duty cycle buffer (252 bytes).
+  - `0x20000E66` – `0x20001400`: RGB LED framebuffer staging area (per-key RGB values).
 
 ---
 
@@ -199,10 +205,11 @@ This proves conclusively that the `CheckDeviceCmd` command from the flasher trig
 
 The matrix scanner function begins at `0x00004592` and is called periodically by the main loop.
 
-### 7.1 Pin Mapping
-- **Switch Matrix (8 Rows × 9 Columns = 68 Switches)**:
+### 7.1 Pin Mapping & Matrix Architecture
+- **Switch Matrix (8 Rows × 16 Columns = 128 Scan Positions, 68 Keys Populated)**:
+  - Firmware scanning table at offset `0x00006D7B` defines an 8-row by 16-column matrix layout (8 bytes per column across 16 columns).
   - **Row Drive Lines (Outputs)**: Port 0 (`0x40044000`): Pins `P0.8`, `P0.9`, `P0.10`, `P0.11`, `P0.12`, `P0.13`, `P0.14`, `P0.15` (8 row lines)
-  - **Column Sense Lines (Inputs with Pull-Ups)**: Port 3 (`0x4004A000`): Pins `P3.0` through `P3.8` (9 column sense lines)
+  - **Column Sense Lines (Inputs with Pull-Ups)**: Port 3 (`0x4004A000`): Pins `P3.0` through `P3.11` (multiplexed column sense lines)
 - **Dedicated SPI Master Lines (`SN_SSP0` at `0x4001C000`)**:
   - `P1.0`: `SSP0_SCK` (Serial Clock)
   - `P1.1`: `SSP0_MOSI` (Master Out Slave In)
@@ -284,8 +291,9 @@ User modifications sent by the configurator are committed to internal flash usin
 | **`0x00008680` – `0x000086FF`** | 128 B | **User Lighting Configuration Profile 1** |
 | **`0x00008780` – `0x000087FF`** | 128 B | **User Keymap Storage Profile 2** |
 | **`0x00008880` – `0x000088FF`** | 128 B | **User Keymap Storage Profile 3** |
-| **`0x00009000` – `0x00009FFF`** | 4 KB | **Custom Per-Key RGB Matrix & Macro Data** |
-| `0x0000FFFC` – `0x0000FFFF` | 4 B | Flash Integrity Checksum / EOF |
+| **`0x00009000` – `0x0000E797`** | ~22.4 KB | **Custom Per-Key RGB Matrix, Macro Streams & Device Config** |
+| `0x0000E798` – `0x0000FFFB` | 6.1 KB | Unused Flash (`0xFF` padding, 6,244 bytes) |
+| `0x0000FFFC` – `0x0000FFFF` | 4 B | Flash Integrity Security Word (`0xAAAA5555`) |
 
 ### 9.2 Flash Controller Programming Routine (`0x615A`)
 The firmware writes flash pages using the following sequence:
@@ -303,7 +311,8 @@ The firmware writes flash pages using the following sequence:
 This firmware analysis confirms that the Royal Kludge RK855 is built on an open and standard hardware foundation:
 
 1. **Flashing & Recovery**:
-   - The keyboard can always be rebooted into the unbrickable Sonix ROM bootloader by sending `AA 42 89 5A FF 71 62 CC` over USB HID.
+   - The keyboard can be rebooted into the Sonix ROM bootloader by sending `AA 42 89 5A FF 71 62 CC` over USB HID, provided application firmware and its USB stack remain operational.
+   - If user flash is corrupted or an incomplete write occurs, recovery requires pulling the hardware boot pin `P0.4` LOW (grounding `P0.4` at power-on) to force the MCU directly into ROM bootloader mode.
    - Any custom flasher can write raw binary directly to `0x00000000` using standard Sonix ISP packets.
 2. **QMK / Open-Source Firmware Compatibility**:
    - The hardware is 100% compatible with the community **SonixQMK** project (`SN32F240B` target).

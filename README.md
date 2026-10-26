@@ -13,13 +13,13 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 | **Keyboard Model** | Royal Kludge RK855 / RK68 (65% layout, 68 physical keys) |
 | **Microcontroller (MCU)** | **SONiX SN32F240B** (pin-compatible with SN32F248B) |
 | **CPU Architecture** | ARM Cortex-M0 (ARMv6-M Thumb) running up to 48 MHz |
-| **Flash Memory** | 64 KB total on-chip Flash (57.6 KB populated: `0x00000000`–`0x0000FFFF` across code, presets, and user data) |
+| **Flash Memory** | 64 KB total on-chip Flash (59,292 bytes populated in HEX across `0x00000000`–`0x0000E797` and `0x0000FFFC`–`0x0000FFFF`; 56,088 non-0xFF bytes in flat binary) |
 | **SRAM** | 8 KB (`0x20000000` – `0x20001FFF`, Initial Stack Pointer: `0x200015B0`) |
 | **USB Operating VID / PID** | `0x05AC` : `0x024F` (Factory ROM Default Profile) / `0x0C45` : `0x8018` (Windows Vendor Utility Filter) |
 | **USB Bootloader VID / PID**| `0x0C45` : `0x82AA` (Sonix ISP Bootloader Mode) |
-| **Switch Matrix** | 8 Rows × 9 Columns multiplexed matrix (68 diode-isolated switches) |
-| **LED Backlight Subsystem** | Multiplexed LED matrix driven via CT16B1 16-bit PWM timers (`0x40002040`) across 18 scanning phases (6 rows × 3 color phases: R, G, B) |
-| **Hardware Variations** | **RGB Variant** (per-key RGB SMD LEDs) and **Single-Color Variant** (monochrome white or blue SMD LEDs). **Both share identical PCBs, MCU, and unified factory firmware.** |
+| **Switch Matrix** | 8 Rows × 16 Columns scan matrix (128 positions, 68 keys populated with diode isolation) |
+| **LED Backlight Subsystem** | Multiplexed LED matrix driven via CT16B1 16-bit PWM timers (`0x40002040`) across 18 scanning phases (6 rows × 3 color phases: R, G, B) and SSP0 SPI controller (`0x4001C000`) |
+| **Hardware Variations** | **RGB Variant** (per-key RGB SMD LEDs) and **Single-Color Variant** (monochrome white or blue SMD LEDs). **Both share identical MCU, PCB architecture, and unified factory firmware.** |
 | **Hardware Boot Pin** | `P0.4` (Internal pull-up; grounded at boot to force ISP bootloader) |
 
 ---
@@ -30,6 +30,15 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 rk855/
 ├── README.md                      # Primary project overview, hardware specs, and quickstart
 ├── .gitignore                     # Repository ignore rules
+├── pyproject.toml                 # uv project configuration and entry points
+├── uv.lock                        # Deterministic dependency lockfile
+├── rk855_gui.py                   # Desktop GUI executable entry point
+├── rk855_gui/                     # Modular PyQt6 desktop GUI implementation
+│   ├── app.py                     # Main window, tabs, and event handling
+│   ├── controller.py              # Hardware controller abstraction
+│   ├── flasher.py                 # In-app firmware flasher workflow
+│   ├── simulator.py               # Offline demo and mock simulator
+│   └── widgets/                   # Custom UI components (interactive keyboard layout, color picker)
 ├── docs/                          # Detailed reverse-engineering technical reports
 │   ├── README.md                  # Documentation index & reading guide
 │   ├── configurator_protocol.md   # Configurator analysis: HID framing, lighting modes, key remap
@@ -140,7 +149,7 @@ python3 tools/rk855_ctl.py mode 14 --color purple --speed 2 --brightness 3
 python3 tools/rk855_ctl.py off
 ```
 
-### 3.4 Firmware Flashing (`rk855_flasher.py`)
+### 3.5 Firmware Flashing (`rk855_flasher.py`)
 Flash or verify firmware over the Sonix ISP USB protocol without external hardware debuggers:
 
 ```bash
@@ -210,11 +219,11 @@ To switch from user firmware into the Sonix ISP bootloader, issue this 9-byte Fe
 
 ### 4.4 Single-Color LED Variant Compatibility
 The RK855 is sold in two hardware variations: an **RGB variant** and a **Single-Color LED variant** (pure white or blue LEDs). Reverse-engineering of `SN32F240B_32.bin` via **REA** confirmed:
-- **Unified Factory Firmware:** Both hardware variants share the exact same MCU firmware image.
+- **Unified Factory Firmware:** Both hardware variants share the exact same MCU firmware image and 8-row × 16-column matrix layout.
 - **18-Phase Scanning Loop:** The firmware timer interrupt (`0x00006252`) modulates 18 multiplexing phases (6 rows × 3 color buffers: Red `0x2000096C`, Green `0x20000A68`, Blue `0x20000B64`).
-- **Feature Parity:** All 20 built-in animation effects, brightness levels (0–4), and speed levels (0–4) are fully functional on single-color boards via hardware PWM modulation.
-- **Color Commands:** On single-color hardware, the single LED channel illuminates in its physical color (e.g. white) regardless of the RGB hue selected.
-- **Flashing Safety:** The included factory firmware dump (`SN32F240B_32.hex` / `.bin`) can be safely flashed to either single-color or RGB boards.
+- **PWM Modulation:** Built-in lighting animations, brightness levels (0–4), and speed levels (0–4) modulate via hardware PWM match registers (`0x40002040`). In monochrome modes, the firmware drives all three color channels simultaneously ($R=G=B$).
+- **Color Commands:** On single-color hardware, monochrome LEDs illuminate in their physical color (e.g. white), and color settings change PWM duty cycles rather than physical hue.
+- **Flashing Compatibility:** Analysis confirms firmware code parity; however, flashing on single-color units is considered believed compatible pending verified hardware captures.
 
 ---
 

@@ -81,6 +81,9 @@ sequenceDiagram
 
 ### 4.1 Transaction Header Codes (Byte 0 = `0x04`)
 
+> [!NOTE]
+> **Byte Indexing Convention**: Throughout this document, "Byte N" refers to the zero-based payload offset (`payload[N]`). When transmitting via OS USB HID libraries (e.g. `hidapi`), the 1-byte Report ID `0x00` is prepended, placing `payload[0]` at wire buffer index 1 (`wire[0] = 0x00`, `wire[1] = 0x04`, `wire[9] = payload[8] = 0x12` or `0x04`).
+
 | Subcommand Byte 1 | Purpose | Payload Size | Description |
 | :---: | :--- | :---: | :--- |
 | `0x18` | **Begin Light Mode** | 64 B | Prepares MCU for lighting profile transfer |
@@ -133,11 +136,11 @@ When sending command `0x04 0x11`:
 - **Byte 5**: Green component (`0x00` – `0xFF`)
 - **Byte 6**: Blue component (`0x00` – `0xFF`)
 - **Byte 7**: Brightness Level (`0` – `4`)
-- **Byte 8**: Speed Level (`0` – `4`, `0x0A` default)
+- **Byte 8**: Speed Level (`0` – `4`, default initialized to `0x0A` in `DeviceDriver.exe` at offset `0x40AF0F` before slider adjustment)
 - **Byte 9**: Direction (`0x00` = Left-to-Right / Clockwise, `0x01` = Right-to-Left / Counter-clockwise)
 
 > [!NOTE]
-> **Single-Color LED Compatibility**: On monochrome / single-color LED variants of the RK855, the Sonix MCU processes the exact same command stream. Dynamic animation modes (0x01–0x12), Brightness (Byte 7), and Speed (Byte 8) are fully functional via hardware PWM modulation, illuminating in the physical LED color (e.g. White). Color parameters (Bytes 3–6) modulate duty cycles but produce no physical hue shift.
+> **Single-Color LED Compatibility**: On monochrome / single-color LED variants of the RK855, the Sonix MCU processes the exact same command stream. Dynamic animation modes (0x01–0x12), Brightness (Byte 7), and Speed (Byte 8) are functional via hardware PWM modulation, illuminating in the physical LED color (e.g. White). Color parameters (Bytes 3–6) modulate duty cycles but produce no physical hue shift.
 
 ### 5.3 Per-Key Custom RGB Lighting Protocol
 To set custom static RGB illumination per individual key:
@@ -151,6 +154,7 @@ To set custom static RGB illumination per individual key:
      - Bytes 1–3: Red, Green, Blue color components
      - Bytes 8–11: Key attribute and parameter indices
      - Bytes 14–15: Fixed delimiter magic bytes `0xAA, 0x55`
+   - *Note on Framing*: In `DeviceDriver.exe` (`0x439BA6`), `0x4C0` (1,216) is divided by 64 (19 reports) and decremented (`dec esi`) to yield `18` (`0x12`), which is placed in Byte 8 of the `04 13` header. The 76 16-byte records easily cover all 68 physical keys of the RK855 with 8 spare slots.
 4. Send Commit: `[0x00, 0x04, 0x02, ...0x00]`
 5. Send Reload: `[0x00, 0x04, 0xF0, ...0x00]`
 
@@ -162,8 +166,9 @@ To set custom static RGB illumination per individual key:
 To remap keyboard keys:
 1. Send Init: `[0x00, 0x04, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, ...0x00]`
 2. Send Mapping Table:
-   - Size: **256 bytes** (`0x100`), sent in **4 consecutive 64-byte reports**.
+   - Size: **256 bytes** (`0x100`), sent in **4 consecutive 64-byte reports** (Header Byte 8 = `0x04`).
    - Each key entry is a 2-byte tuple: `[PhysicalKeyCode, TargetFunctionCode]`
+   - The 256-byte payload stores 128 2-byte tuples, mapping each of the 128 positions in the MCU's 8-row × 16-column matrix.
 3. Send Commit: `[0x00, 0x04, 0x02, ...0x00]`
 
 ### 6.2 Supported Remap Action Types

@@ -78,18 +78,26 @@ Once in bootloader mode, all communication occurs via **HID Feature Reports** (`
   - Byte 2: `0x55` (Magic byte 2)
   - Bytes 3..7: Parameters (Addresses, lengths, or flags)
 
-### 4.2 Complete ISP Command Set
+### 4.2 Sonix ISP Command Architecture
 
-| Opcode | Command Name | Packet Format (Hex) | Description |
-| :---: | :--- | :--- | :--- |
-| `0x01` | **Handshake / Hello** | `01 AA 55 00 00 00 00 00` | Checks bootloader presence; returns status `0x01` |
-| `0x02` | **Get Chip ID** | `02 AA 55 00 00 00 00 00` | Reads MCU silicon ID (confirms `SN32F24xB`) |
-| `0x03` | **Get Bootloader Ver**| `03 AA 55 00 00 00 00 00` | Reads bootloader version string |
-| `0x06` | **Read / Verify Flash**| `06 AA 55 [Addr: 4 bytes] [Len]` | Reads flash page back for verification |
-| `0x07` | **Write Flash Page** | `07 AA 55 [Addr: 4 bytes] [64 bytes data]` | Programs 64 bytes of firmware into Flash |
-| `0x08` | **Erase Flash** | `08 AA 55 [Sector / Flags: 5 bytes]` | Bulk or page erases user application flash |
-| `0x20`–`0x28`| **Extended Commands**| `2X AA 55 ...` | Security configuration and checksum checks |
-| `0x29` | **Reset & Run App** | `29 AA 55 00 00 00 00 00` | Exits bootloader and branches to user firmware |
+Disassembly of `RK855_firmware_flasher.exe` reveals that the Sonix ISP engine supports both a legacy standard command set (`0x01`–`0x09`) and an extended Cortex-M0 command set (`0x20`–`0x2A`):
+
+| Opcode (Ext / Std) | Official Command Name | Functional Role |
+| :---: | :--- | :--- |
+| `0x20` / — | **Enter ISP Mode** | Establishes ISP session with the bootloader |
+| `0x21` / `0x01` | **Get Firmware Version** | Reads bootloader / MCU version string |
+| `0x22` / `0x02` | **Compare ISP Password** | Authenticates flasher security handshake |
+| `0x23` / `0x03` | **Set Encryption Algorithm** | Configures code security / decryption mode |
+| `0x24` / `0x04` | **Enable Erase** | Triggers flash sector or chip erase |
+| `0x25` / `0x05` | **Enable Program** | Enables flash page programming mode |
+| `0x26` / `0x06` | **Get Check Sum** | Reads back calculated hardware checksum |
+| `0x27` / `0x07` | **Return User Mode** | Exits ISP mode and reboots into user firmware |
+| `0x28` / `0x08` | **Set Code Option** | Writes security and clock options |
+| `0x29` / `0x09` | **Get Code Option** | Reads security and hardware configuration bits |
+| `0x2A` / — | **Enable Check Data** | Verifies programmed flash against input |
+
+> [!IMPORTANT]
+> **Transport Length Framing**: In `RK855_firmware_flasher.exe` (`0x420B79`), the flasher does not hardcode packet sizes. It queries `FeatureReportByteLength` from the operating system via `HidP_GetCaps` and formats reports to match the bootloader's declared HID feature size (e.g. 65 bytes: 1-byte Report ID `0x00` + 64-byte payload). Custom flasher tools must strictly adhere to the endpoint's declared feature size to prevent buffer overflow or pipe rejection.
 
 ### 4.3 Flashing Sequence Workflow
 ```mermaid
@@ -138,7 +146,7 @@ Located at file offset `0x001BC3A8` (size: 96,771 bytes), extracted to:
 Key extracted files:
 1. **`Settings\FWFiles\SN32F240B_32.hex`** (166,843 bytes):
    - Format: Standard Intel HEX representation of the factory firmware.
-   - Code Size: Covers memory range `0x00000000` to `0x00007FFF` (32 KB active image).
+   - Memory Span: `0x00000000` to `0x0000FFFF` (64 KB address space; 59,292 bytes populated across `0x00000000`–`0x0000E797` and `0x0000FFFC`–`0x0000FFFF` with Sonix security word `0xAAAA5555`).
 2. **`Settings\UISettings.ini`**:
    - Contains firmware configuration parameters and validation commands:
      ```ini

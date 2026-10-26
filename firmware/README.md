@@ -17,13 +17,13 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 
 - **Microcontroller**: SONiX SN32F240B (or pin-compatible SN32F248B)
 - **CPU Core**: ARM Cortex-M0 (ARMv6-M Thumb-2, 32-bit RISC) @ 48 MHz
-- **Flash ROM**: 64 KB total (57,600 bytes populated across `0x00000000`–`0x0000FFFF` including code, factory presets, user profiles, and integrity footer)
+- **Flash ROM**: 64 KB total (59,292 bytes populated in HEX across `0x00000000`–`0x0000E797` and `0x0000FFFC`–`0x0000FFFF`; 56,088 non-0xFF bytes in flat binary)
 - **Page Size**: 64 bytes (ISP write unit)
 - **SRAM**: 8 KB (`0x20000000` – `0x20001FFF`)
 - **Initial Vector Table**:
   - `SP` (Stack Pointer): `0x200015B0` (Initialized in SRAM)
   - `Reset_Handler`: `0x000066D1` (Thumb entry address `0x000066D0`)
-  *(Note: The value `0x0109` found in `UISettings.ini` corresponds to firmware version v1.09, not the reset vector).*
+  *(Note: The value `0x0109` found in `UISettings.ini` corresponds to firmware version v1.09, not the reset vector. The alternative vector pair `0x20000728` / `0x000000D9` belongs to the flasher executable's embedded resource 4000).*
 
 ---
 
@@ -45,11 +45,11 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 | Padding (0xFF)           |
 +--------------------------+ 0x00008580
 | Onboard User Profiles    | (Keymaps, custom lighting,
-| & Macro Flash Storage    |  and macros to 0x0000E7BF)
-+--------------------------+ 0x0000E7BF
-| Unused Flash (0xFF)      |
-+--------------------------+ 0x0000FFC0
-| Flash Config & Checksum  | (64 bytes integrity footer)
+| & Macro Flash Storage    |  and macros to 0x0000E797)
++--------------------------+ 0x0000E798
+| Unused Flash (0xFF)      | (6,244 bytes unwritten erase space)
++--------------------------+ 0x0000FFFC
+| Flash Integrity Keyword  | (4 bytes: 0xAAAA5555 / 55 55 AA AA)
 +--------------------------+ 0x0000FFFF (64 KB Flash Limit)
 ```
 
@@ -60,10 +60,11 @@ This directory contains the official factory firmware for the **Royal Kludge RK8
 - **Source Archive**: Embedded `RT_RCDATA` resource ID `4011` in `vendor/binaries/RK855_firmware_flasher.exe`.
 - **Archive Offset**: `0x001BC3A8` (Deflate ZIP compressed stream).
 - **Original Path**: `Settings/FWFiles/SN32F240B_32.hex`.
-- **Conversion to Binary**: Generated using standard `objcopy`:
+- **Conversion to Binary**: Generated using standard `objcopy` with gap filling:
   ```bash
-  objcopy -I ihex -O binary SN32F240B_32.hex SN32F240B_32.bin
+  objcopy -I ihex -O binary --gap-fill 0xff SN32F240B_32.hex SN32F240B_32.bin
   ```
+  *(Note: `--gap-fill 0xff` is required to ensure sparse unwritten flash areas between `0x0000E798` and `0x0000FFFB` are filled with erased flash byte `0xFF`, matching the flat binary byte-for-byte).*
 
 ---
 
@@ -93,6 +94,7 @@ Reverse engineering analysis using **REA** confirms that **`SN32F240B_32.hex` / 
 - Both models use the identical SONiX `SN32F240B` MCU, PCB matrix, and ISP bootloader entry sequence.
 - The firmware executes an 18-phase multiplexing loop (`0x00006082`) driving Red (`0x2000096C`), Green (`0x20000A68`), and Blue (`0x20000B64`) row buffers into 16-bit PWM match registers at `0x40002040`.
 - On single-color models, monochrome LEDs respond to all 20 animation effects, brightness levels, and speeds via hardware PWM modulation.
-- Flashing this firmware is 100% safe and verified for both single-color and RGB variants.
+- In static, monochrome, and indicator routines, the firmware writes identical PWM values across Red, Green, and Blue buffers simultaneously ($R=G=B$), ensuring single-color LEDs receive PWM power regardless of which color line they bridge.
+- Flashing this unified firmware is believed compatible for both single-color and RGB variants based on firmware PWM analysis (physical hardware test capture recommended before production flashing).
 
 For full register-level firmware analysis, refer to [docs/sn32f240b_firmware_analysis.md](../docs/sn32f240b_firmware_analysis.md).

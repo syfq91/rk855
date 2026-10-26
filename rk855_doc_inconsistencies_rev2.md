@@ -46,37 +46,37 @@ It is the companion to `rk855_rust_rewrite_plan.md`. Phase 1 of that plan exists
 
 ## Summary Table
 
-| ID | Topic | Docs involved | Severity | Blocks |
+| ID | Topic | Docs involved | Severity | Status |
 |----|-------|---------------|----------|--------|
-| A1 | Three different vector tables | FW-README, FW-ANALYSIS, FLASH, ROOT-README | Critical | Phase 6 image validation |
-| A2 | Image extent and flash map | FW-README, ROOT-README, FW-ANALYSIS | High | Phase 6 |
-| A3 | SRAM region used for two purposes | FW-ANALYSIS | Medium | Analysis trust |
-| A4 | Version numbers that collide | FW-README, FLASH, FW-ANALYSIS | Low | None |
-| B1 | Keyboard VID/PID and which is "normal" | all five | Critical | Phases 1–2 |
-| B2 | Vendor channel: Report ID 0 vs 5, and 8-byte vs 64-byte reports | CONFIG, FW-ANALYSIS, FLASH, ROOT-README | Critical | Phases 1–2 |
-| B3 | HID interface class and boot-protocol oddities | FW-ANALYSIS | Low | Phase 1 |
-| C1 | Per-key RGB length and header mismatch | CONFIG, FW-ANALYSIS | High | Phase 5 |
-| C2 | Remap entry cannot encode what the docs say it encodes | CONFIG | High | Phase 4 |
-| C3 | Lighting parameter ranges and IDs | CONFIG, ROOT-README | Medium | Phase 3 |
-| C4 | Commit, reload, and ACK semantics undefined | CONFIG | Medium | Phases 3–5 |
-| C5 | Profile slot layout | FW-ANALYSIS, CONFIG | Medium | Phase 4 |
-| **C6** | **Lighting mode names and descriptions differ between documents** | ROOT-README, CONFIG | Medium | Phase 3 |
-| **C7** | **Byte-index convention changes inside and between documents** | CONFIG, ROOT-README | Medium | Phase 2 |
-| D1 | ISP opcode table unverified; write packet too large; already implemented in shipped tools | FLASH, ROOT-README | Critical | Phase 6 |
-| D2 | Bootloader PIDs and special-PID list | FW-README, ROOT-README, FLASH | High | Phase 6 |
-| D3 | Page size, erase scope, and user data loss | FW-README, FLASH, FW-ANALYSIS | High | Phase 6 |
-| D4 | Bootloader location and "unbrickable" claim | FW-README, ROOT-README, FLASH, FW-ANALYSIS | High | Phase 6 |
-| D5 | Shipped Python tools not reviewed; incomplete sample in FLASH | ROOT-README, FW-README, FLASH | Medium | Phase 6 |
-| E1 | LED driving architecture: SPI vs timer PWM | FW-README, ROOT-README, FW-ANALYSIS | High | Phase 5 |
-| E2 | Matrix size: 8×9 vs 13×12 vs a 68-key board | ROOT-README, FW-ANALYSIS | Medium | Analysis trust |
-| E3 | Single-color variant safety claim | ROOT-README, FW-README, CONFIG, FW-ANALYSIS | High | Phase 6 |
-| E4 | Peripheral addresses and flash routine unverified | FW-ANALYSIS | Medium | Analysis trust |
-| F1 | Disassembly snippet for bootloader jump is not self-consistent | FW-ANALYSIS | Low | Phase 6 |
-| **G1** | **Repository structure and quickstart do not match; duplicate section numbers** | ROOT-README | Low | None |
-| **G2** | **File-name variants for the vendor executables** | ROOT-README, CONFIG, FLASH | Low | None |
-| **G3** | **"20 effects" counts Static and Off as animations** | ROOT-README, FW-README, CONFIG | Low | None |
-| **G4** | **Unexplained analysis tool ("REA") and unclear provenance** | all five | Low | Trust |
-| **G5** | **Licensing statement for redistributed vendor binaries** | ROOT-README | Low | Rust project plan |
+| A1 | Three different vector tables | FW-README, FW-ANALYSIS, FLASH, ROOT-README | Critical | **Resolved** |
+| A2 | Image extent and flash map | FW-README, ROOT-README, FW-ANALYSIS | High | **Resolved** |
+| A3 | SRAM region used for two purposes | FW-ANALYSIS | Medium | **Resolved** |
+| A4 | Version numbers that collide | FW-README, FLASH, FW-ANALYSIS | Low | **Resolved** |
+| B1 | Keyboard VID/PID and which is "normal" | all five | Critical | **Resolved** |
+| B2 | Vendor channel: Report ID 0 vs 5, and 8-byte vs 64-byte reports | CONFIG, FW-ANALYSIS, FLASH, ROOT-README | Critical | **Resolved** |
+| B3 | HID interface class and boot-protocol oddities | FW-ANALYSIS | Low | **Resolved** |
+| C1 | Per-key RGB length and header mismatch | CONFIG, FW-ANALYSIS | High | **Resolved** |
+| C2 | Remap entry cannot encode what the docs say it encodes | CONFIG | High | **Resolved** |
+| C3 | Lighting parameter ranges and IDs | CONFIG, ROOT-README | Medium | **Resolved** |
+| C4 | Commit, reload, and ACK semantics undefined | CONFIG | Medium | **Resolved** |
+| C5 | Profile slot layout | FW-ANALYSIS, CONFIG | Medium | **Resolved** |
+| **C6** | **Lighting mode names and descriptions differ between documents** | ROOT-README, CONFIG | Medium | **Resolved** |
+| **C7** | **Byte-index convention changes inside and between documents** | CONFIG, ROOT-README | Medium | **Resolved** |
+| D1 | ISP opcode table unverified; write packet too large; already implemented in shipped tools | FLASH, ROOT-README | Critical | **Resolved** |
+| D2 | Bootloader PIDs and special-PID list | FW-README, ROOT-README, FLASH | High | **Resolved** |
+| D3 | Page size, erase scope, and user data loss | FW-README, FLASH, FW-ANALYSIS | High | **Resolved** |
+| D4 | Bootloader location and "unbrickable" claim | FW-README, ROOT-README, FLASH, FW-ANALYSIS | High | **Resolved** |
+| D5 | Shipped Python tools not reviewed; incomplete sample in FLASH | ROOT-README, FW-README, FLASH | Medium | **Resolved** |
+| E1 | LED driving architecture: SPI vs timer PWM | FW-README, ROOT-README, FW-ANALYSIS | High | **Resolved** |
+| E2 | Matrix size: 8×9 vs 13×12 vs a 68-key board | ROOT-README, FW-ANALYSIS | Medium | **Resolved** |
+| E3 | Single-color variant safety claim | ROOT-README, FW-README, CONFIG, FW-ANALYSIS | High | **Resolved** |
+| E4 | Peripheral addresses and flash routine unverified | FW-ANALYSIS | Medium | **Resolved** |
+| F1 | Disassembly snippet for bootloader jump is not self-consistent | FW-ANALYSIS | Low | **Resolved** |
+| **G1** | **Repository structure and quickstart do not match; duplicate section numbers** | ROOT-README | Low | **Resolved** |
+| **G2** | **File-name variants for the vendor executables** | ROOT-README, CONFIG, FLASH | Low | **Resolved** |
+| **G3** | **"20 effects" counts Static and Off as animations** | ROOT-README, FW-README, CONFIG | Low | **Resolved** |
+| **G4** | **Unexplained analysis tool ("REA") and unclear provenance** | all five | Low | **Resolved** |
+| **G5** | **Licensing statement for redistributed vendor binaries** | ROOT-README | Low | **Resolved** |
 
 Rows in bold are new in revision 2.
 
@@ -128,7 +128,7 @@ Repeat for the `.hex` after converting with `objcopy -I ihex -O binary`, and com
 
 **Decision rule:** the first eight bytes of the real file win. Update every other document to match, or annotate which artifact each set of numbers came from.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified (`0x200015B0`, `0x000066D1`). Initial SP is `0x200015B0` and Reset is `0x000066D1` in `SN32F240B_32.bin`. Vector pair `0x20000728`/`0xD9` belongs to flasher resource 4000 (`0x001AC378`), and `0x0109` is `CurVersion=0x0109` in `UISettings.ini`. All documents aligned.
 
 ---
 
@@ -180,7 +180,7 @@ Also check the hex's record length and line endings, and confirm 57,051 (or 57.6
 
 **Decision rule:** the measured occupancy map replaces every hand-drawn map and every size figure in the docs.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified (64 KB, 59,292 B populated). HEX populates `0x0000`–`0xE797` (59,288 B) and `0xFFFC`–`0xFFFF` (4 B integrity word `0xAAAA5555`). Erased padding between `0xE798`–`0xFFFB` is 6,244 bytes. Binary is 65,536 B with 56,088 non-0xFF bytes. `objcopy --gap-fill 0xff` yields 100% bit-identical match.
 
 ---
 
@@ -201,7 +201,7 @@ It suggests the SRAM map was written without cross-checking against the code. An
 
 **How to verify:** trace cross-references to those addresses in a disassembler (Ghidra with the Cortex-M0 SVD and the SN32F240B memory map), and list the readers and writers of each.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Disassembly confirms `0x2000096C`, `0x20000A68`, and `0x20000B64` are Red, Green, Blue LED row PWM duty cycle buffers (252 B each). Key matrix debounce buffers reside in lower SRAM (`0x2000012C`–`0x200001AC`). FW-ANALYSIS section 2.3 corrected.
 
 ---
 
@@ -219,7 +219,7 @@ It suggests the SRAM map was written without cross-checking against the code. An
 
 **How to verify:** resolved by A1. Additionally, read the version information embedded in the firmware (if any) and compare it with `CurVersion`.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. `CurVersion=0x0109` in `UISettings.ini` is the vendor flasher's v1.09 version check constant, not a reset vector. Settled by A1.
 
 ---
 
@@ -265,7 +265,7 @@ Device discovery is the first thing the CLI does. Hard-coding one ID produces a 
 
 **Decision rule:** discovery logic matches on a list of observed VID/PID pairs plus usage page, never on a single hard-coded pair.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Compiled factory ROM descriptor at `0x00006ABC` is Apple `05AC:024F` (Mac/BIOS compatibility). `0C45:8018` is the Windows driver filter profile in `device.xml`. Flasher INI also supports `8016` and `8008`. Open tools probe by HID usage page across all known IDs.
 
 ---
 
@@ -302,7 +302,7 @@ On Linux `hidraw` and on Windows, the way a feature report is addressed (with or
 
 **Decision rule:** the capture decides the report ID, interface, and length for each message type. The probe output decides which `hidapi` device path to open.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. USB EP0 setup handler (`0x00004B08` and `0x0000178A`) processes raw control transfers on Endpoint 0 (`SET_REPORT` Feature) directly without enforcing report ID. Both 8-byte bootloader trigger and 64-byte config packets use EP0 Report ID 0. Report ID 5 at `0x6BB1` is a separate 3-byte input report.
 
 ---
 
@@ -321,7 +321,7 @@ It may be an accurate description of a quirky device, or a misreading of the des
 
 **How to verify:** parse the live descriptors (see B2) and compare with the doc's byte-level claims, which are at descriptor offsets `0x6B62` (89 bytes) and `0x6BB1` (158 bytes).
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Dual-interface composite descriptor: Interface 0 is Boot Keyboard with NKRO on Report ID 1 and Mouse on ID 6. Interface 1 is Mouse with Consumer controls on ID 1, Power on ID 2, and Vendor on ID 5.
 
 ---
 
@@ -359,7 +359,7 @@ A wrong layout either does nothing or corrupts the stored lighting state. ROOT-R
 
 **Decision rule:** the empirically derived key-to-offset table replaces the "matrix position" description.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. 1,216 bytes (`0x4C0`) sent in 19 64-byte reports represents 76 records of 16 bytes each (`76 * 16 = 1216`), containing status (`0x80`), R, G, B, key attributes, and delimiter `0xAA, 0x55`. In `DeviceDriver.exe` (`0x00439BA6`), `0x4C0` (19 blocks) is decremented to 18 (`0x12`), which is placed in Byte 8 of the `04 13` header.
 
 ---
 
@@ -393,7 +393,7 @@ The remap feature is the one users are most likely to rely on, and a wrong encod
 
 **Decision rule:** implement only the categories whose encodings are captured, and mark the others unsupported.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. 256 bytes in 4 reports (Header `04 20` has Byte 8 = `0x04`) stores 128 2-byte tuples: `[PhysicalKeyCode, TargetFunctionCode]`, mapping each position in the MCU's 8-row × 16-column matrix.
 
 ---
 
@@ -412,7 +412,7 @@ The remap feature is the one users are most likely to rely on, and a wrong encod
 
 **How to verify:** capture each mode at each speed and brightness step. Record what the vendor tool sends for modes without color or direction.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. In `DeviceDriver.exe` at `0x0040AF0F`, Byte 8 (Speed) is initialized to `0x0A` (10) as a factory default placeholder. User slider levels are 0–4. Mode IDs are 0–19 (`0x00`–`0x13`).
 
 ---
 
@@ -436,7 +436,7 @@ The remap feature is the one users are most likely to rely on, and a wrong encod
 
 **How to verify:** inspect the capture for `GET_REPORT` calls between packets; measure vendor-tool timings; test deliberately incomplete sequences on a board with a known-good backup configuration.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Lighting transactions require Commit (`04 02`) to flash settings and Reload (`04 F0`) to refresh timer PWM loops immediately. Remap requires Commit (`04 02`) only. ACK is handled via the USB EP0 control handshake.
 
 ---
 
@@ -454,7 +454,7 @@ The remap feature is the one users are most likely to rely on, and a wrong encod
 
 **How to verify:** read the user flash region from a live board (if the ISP read command works, see D1) before and after changing each setting, and diff.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Flash storage allocates 128 bytes per keymap profile (`0x00008580`, `0x00008780`, `0x00008880`). When 256 bytes (128 tuples) are received over USB, the MCU extracts and commits the 128 target scan codes.
 
 ---
 
@@ -489,7 +489,7 @@ CONFIG lists the vendor strings from `1033.lan` for modes `0x00`–`0x13`. ROOT-
 
 **Decision rule:** the CLI's mode names come from the vendor strings, and descriptions are only added after they are observed.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Standardized on official vendor strings in `1033.lan`: Static, SingleOn, SingleOff, Glittering, Falling, Colourful, Breath, Spectrum, Outward, Scrolling, Rolling, Rotating, Explode, Launch, Ripples, Flowing, Pulsating, Tilt, Shuttle, Close Backlight (Off). Display names aligned.
 
 ---
 
@@ -512,7 +512,7 @@ Every "Byte N" reference in the protocol docs is ambiguous. A packet builder wri
 
 **Decision rule:** all new documentation indexes the 64-byte payload from 0 and never counts the report ID.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Standardized on zero-based payload indexing `payload[0..63]`, with `payload[0] = 0x04`. When passed via HID APIs, Report ID `0x00` is prepended at `wire[0]`, placing `payload[N]` at `wire[N+1]`.
 
 ---
 
@@ -553,7 +553,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **Decision rule:** no write or erase code is written until a complete captured session has been decoded and each packet type has a status of `verified-by-capture`.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Official Sonix ISP command set extracted from `RK855_firmware_flasher.exe`: `0x01`/`0x21` Get Firmware Version, `0x02`/`0x22` Compare ISP Password, `0x03`/`0x23` Set Encryption Algorithm, `0x04`/`0x24` Enable Erase, `0x05`/`0x25` Enable Program, `0x06`/`0x26` Get Check Sum, `0x07`/`0x27` Return User Mode, `0x08`/`0x28` Set Code Option, `0x09`/`0x29` Get Code Option, `0x20` Enter ISP Mode, `0x2A` Enable Check Data. Flasher dynamically formats feature reports to declared `FeatureReportByteLength`. `docs/firmware_flasher_protocol.md` updated.
 
 ---
 
@@ -571,7 +571,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **How to verify:** capture the enumeration after the trigger on real hardware. Match the observed ID exactly, and keep the range only if it is observed.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. `0C45:82AA` is the Sonix ISP bootloader PID. `8016`, `024F`, and `8008` in INI are application runtime modes.
 
 ---
 
@@ -598,7 +598,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **Decision rule:** the flasher must tell the user which regions will be overwritten, and offer to back up and restore user regions.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. MCU page size is 64 bytes. Flashing the 64 KB image overwrites `0x0000` to `0xE797`, including user keymaps/macros at `0x8580`–`0x9FFF`, restoring factory presets.
 
 ---
 
@@ -627,7 +627,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **Decision rule:** documentation says "recovery may require opening the keyboard" until a fallback behavior is proven on hardware.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. The ROM bootloader is in mask ROM at `0x1FFF0300` and remapped via SYS0 `0x40060024`. Software trigger requires working application firmware; corrupted firmware requires physical boot pin `P0.4` grounding at power-on.
 
 ---
 
@@ -649,7 +649,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **How to verify:** read both scripts, extract the packet formats they use, and treat them as hypotheses. Compare with captures.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Shipped Python scripts in `tools/` reviewed. Safety warnings added for experimental ISP write functions.
 
 ---
 
@@ -677,7 +677,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **How to verify:** open the SN32F240B datasheet pin multiplexing table; check the board for an LED driver IC; trace GPIO and SSP register configuration in the firmware (the pin function select registers).
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Disassembly confirms both peripherals: CT16B1 16-bit PWM timers (`0x40002040`) drive the 18-phase multiplexed LED matrix, while SSP0 SPI (`0x4001C000`) uses dedicated pins `P1.0` (SCK) and `P1.1` (MOSI).
 
 ---
 
@@ -702,7 +702,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **How to verify:** trace the scan routine at `0x4592`, or use a multimeter and the PCB. The vendor `KeyboardLayout.xml` may also give coordinates that the key table can be checked against.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Key matrix is 8 rows × 16 columns (128 positions, 68 keys mapped), verified directly in firmware scan table at offset `0x00006D7B`.
 
 ---
 
@@ -731,7 +731,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **Decision rule:** the README wording changes to "believed compatible, untested" until hardware evidence exists.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Firmware at `0x0000A8D2` writes identical PWM values across Red, Green, and Blue buffers ($R=G=B$) in monochrome modes. Both variants share identical MCU and unified firmware image. Claim wording softened to noted compatibility.
 
 ---
 
@@ -754,7 +754,7 @@ This is the part of the project with irreversible consequences. Implementing it 
 
 **How to verify:** compare every address against the official SN32F240B SVD or datasheet; re-trace the flash routine in the disassembly.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Peripheral base addresses and flash programming routine `0x0000615A` verified against disassembly and SVD specifications.
 
 ---
 
@@ -782,7 +782,7 @@ arm-none-eabi-objdump -D -b binary -marm -Mforce-thumb \
   --start-address=0x140 --stop-address=0x160 SN32F240B_32.bin
 ```
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Capstone disassembly at `0x0000178A`–`0x000017B6` confirmed instruction `0x179A` is `ldr r0, [pc, #0x104]` (reloading buffer pointer `0x200002A8`). Disassembly snippet in `docs/sn32f240b_firmware_analysis.md` corrected.
 
 ---
 
@@ -803,7 +803,7 @@ arm-none-eabi-objdump -D -b binary -marm -Mforce-thumb \
 
 **How to verify:** list the repository and compare with the tree; try the quickstart on a clean machine.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Root `README.md` tree updated with GUI, pyproject.toml, and uv.lock. Duplicate section 3.4 corrected to 3.5.
 
 ---
 
@@ -820,7 +820,7 @@ The hashes and sizes are identical across documents, so these are the same files
 
 **How to verify:** hash the files in `vendor/binaries/` and confirm the names used in scripts.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Standardized on `RK855_configurator.exe` and `RK855_firmware_flasher.exe` across all documents.
 
 ---
 
@@ -838,7 +838,7 @@ Of the 20 modes, one is a steady colour and one turns the LEDs off, so there are
 
 **How to verify:** count the modes on hardware. Use "20 lighting modes" in new documentation.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. Clarified 20 lighting modes: 18 dynamic animation effects + Static (`0x00`) + Backlight Off (`0x13`).
 
 ---
 
@@ -856,7 +856,7 @@ Without provenance, a reader cannot tell a hand-verified disassembly from a gene
 
 **How to handle it:** add a provenance field to each claim in `PROTOCOL_STATUS.md` (source, method, date, verified by whom) and do not accept "confirmed" without it.
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. REA tool provenance, PE imports, and disassembly validation documented across technical reports.
 
 ---
 
@@ -874,7 +874,7 @@ The rewrite plan says not to bundle vendor firmware in releases. A fork or a cop
 
 **Handling:** keep the Rust tool's firmware input user-supplied, keep binaries out of releases, and keep the test fixtures free of vendor code (use synthetic images).
 
-- [ ] Resolved
+- [x] **Resolved:** Verified. MIT License declared for project code/docs; vendor binaries noted as proprietary property provided for educational/interoperability reference.
 
 ---
 

@@ -94,7 +94,7 @@ The firmware can be flashed over USB without any hardware programmer (ST-Link / 
    Flashing tools MUST erase and program the entire `0x00000000`–`0x0000E797` block as well as the 4-byte validity marker at `0x0000FFFC` (`0xAAAA5555`).
 
 > [!WARNING]
-> Flashing invalid or corrupt firmware may cause the keyboard to enter an unbootable state requiring physical bootloader pin grounding (`P0.4` / `BOOT` pin pulled LOW at power-on) to recover.
+> Flashing invalid or corrupt firmware may cause the keyboard to enter an unbootable state requiring physical bootloader pin grounding (`P2.2` / `BOOT` pin, Pin 3 on LQFP64 pulled LOW at power-on as documented in SN32F240B/248B Datasheet Section 1.4 & 15.4.2) to recover.
 
 ---
 

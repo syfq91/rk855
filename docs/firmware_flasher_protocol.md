@@ -22,7 +22,8 @@ The analysis was performed using **REA (Reverse Engineer Anything)**, static PE 
 - **Chip Family**: **Sonix SN32F24xB** (ARM Cortex-M0 32-bit RISC core @ 48 MHz)
 - **Flash Memory**: 64 KB total (Page size: strictly **64 bytes**)
 - **SRAM**: 8 KB (Base address: `0x20000000`, bounds `0x20000000`–`0x20001FFF`)
-- **ROM / Bootloader Base**: Mask ROM at `0x1FFF0300`, remapped through `SYS0->REMAP` (`0x40060024`)
+- **ROM / Bootloader Base**: 3 KB Mask ROM at `0x1FFF0000`–`0x1FFF0BFF` (entry at `0x1FFF0300`), remapped through `SYS0_IVTM` (`0x40060024`, key `0xA5A5`)
+- **Hardware Boot Pin**: `P2.2` (Pin 3 of LQFP64 / Pin 4 of QFN33; internal pull-up; pull LOW at boot to hardware-force ISP bootloader mode)
 - **Initial Vector Table of Target Keyboard (`SN32F240B_32.bin`)**:
   - Initial Stack Pointer (SP): `0x200015B0` (located at flash offset `0x00000000`)
   - Reset Handler: `0x000066D1` (Thumb entry address `0x000066D0` at flash offset `0x00000004`)
@@ -72,9 +73,10 @@ The flasher sends an 8-byte command via **HID SetFeature** to Interface 0:
 Upon receiving this command:
 1. The keyboard MCU verifies the 8-byte signature at `0x00001794` and `0x0000179E`.
 2. The EP0 buffer is cleared, and execution branches to `0x0000014C`.
-3. The function writes `0x00000000` to `SYS0->REMAP` (`0x40060024`) and executes `bx r0` to jump directly into Mask ROM bootloader vector `0x1FFF0301`.
-4. The USB connection drops and reconnects within 1–2 seconds.
-5. The device re-enumerates as the Sonix ISP Bootloader (`VID: 0x0C45`, `PID: 0x82AA`).
+3. The function writes to `SYS0_IVTM` (`0x40060024`, Interrupt Vector Table Mapping register) and executes `bx r0` to jump directly into Mask ROM bootloader vector `0x1FFF0301`.
+4. If the firmware is non-functional, pulling hardware pin `P2.2` (Pin 3 on LQFP64) LOW during boot forces the MCU directly into the bootloader with SWD enabled.
+5. The USB connection drops and reconnects within 1–2 seconds.
+6. The device re-enumerates as the Sonix ISP Bootloader (`VID: 0x0C45`, `PID: 0x82AA`).
 
 ---
 

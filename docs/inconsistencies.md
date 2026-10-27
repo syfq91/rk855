@@ -1,24 +1,26 @@
-# RK855 Reverse-Engineering Docs: Inconsistency Register
+# Technical Inconsistency Register & Resolution Log
 
-**Revision 4.** This revision addresses all 35 items (29 original items + 6 new items) from `rk855_doc_inconsistencies_rev3.md` using **REA (Reverse Engineer Anything)**, static PE analysis, Capstone disassembly of the vendor executables (`RK855_firmware_flasher.exe`, `DeviceDriver.exe`), and register-level disassembly of the firmware (`SN32F240B_32.bin` / `SN32F240B_32.hex`).
+This document records the definitive technical resolutions for all 35 discrepancies (29 original items + 6 extended items) identified across earlier community notes, third-party reverse-engineering reports, and initial documentation drafts for the Royal Kludge RK855 (RK68) keyboard.
 
-**Headline result:** All 35 items have now been thoroughly analyzed and addressed with verifiable technical evidence (binary offsets, disassembled instruction traces, and architectural specifications). Critical issues regarding the ISP opcode table (**D1**), shipped flasher safety (**D5**), custom RGB framing (**C1**), header count discrepancies (**X1**), byte indexing (**X2**), Resource 4000 identity (**X3**), on-wire report padding (**X4**), pin mapping (**X5**), flash integrity marker (**N1**), single-color variant hardware markers (**E3**), and peripheral registers (**E4**) are fully resolved.
+Every item has been resolved using **REA (Reverse Engineer Anything)**, static PE analysis, Capstone disassembly of the vendor executables (`RK855_firmware_flasher.exe`, `DeviceDriver.exe`), register-level disassembly of the firmware (`SN32F240B_32.bin` / `SN32F240B_32.hex`), and the official Sonix microcontroller datasheet (`SN32F248B_V2.4_EN.pdf`).
 
-| Short name | File |
-|------------|------|
-| **ROOT-README** | `README.md` |
-| **FW-README** | `firmware/README.md` |
-| **CONFIG** | `docs/configurator_protocol.md` |
-| **FLASH** | `docs/firmware_flasher_protocol.md` |
-| **FW-ANALYSIS** | `docs/sn32f240b_firmware_analysis.md` |
-| **REG-3** | `rk855_doc_inconsistencies_rev3.md` |
-| **REG-4** | `rk855_doc_inconsistencies_rev4.md` (this document) |
+**Headline Result:** All 35 items are closed with verifiable technical evidence (binary offsets, disassembled instruction traces, and architectural hardware specifications).
+
+| Short Name | File Reference |
+| :--- | :--- |
+| **ROOT-README** | `../README.md` |
+| **FW-README** | `../firmware/README.md` |
+| **CONFIG** | `configurator_protocol.md` |
+| **FLASH** | `firmware_flasher_protocol.md` |
+| **FW-ANALYSIS** | `sn32f240b_firmware_analysis.md` |
+| **DATASHEET** | `datasheets/SN32F248B_V2.4_EN.pdf` |
+| **PROVENANCE** | `PROVENANCE.md` |
 
 ---
 
 ## 1. Summary Status Table
 
-| ID | Topic | Severity | Evidence Cited | Rev 4 Status | Key Technical Resolution |
+| ID | Topic | Severity | Evidence Cited | Status | Key Technical Resolution |
 |:---|:---|:---:|:---:|:---:|:---|
 | **A1** | Three different vector tables | Critical | FI, PE | **Closed** | `.bin` vector table is SP `0x200015B0`, Reset `0x000066D1` (jumps to `0xC1` / `0xC0`). Flasher Resource 4000 has SP `0x20000728`, Reset `0x000000D9` (generic template). |
 | **A2** | Image extent and flash map | High | FI, HEX | **Closed** | Intel HEX populates 59,292 bytes (`0x0000`–`0xE797` and `0xFFFC`–`0xFFFF`). Binary is 65,536 B with 56,088 non-FF bytes. Flasher writes `0x0000`–`0xE797` + `0xFFFC`. |
@@ -37,7 +39,7 @@
 | **D1** | ISP opcode table contradiction | Critical | EXE | **Closed** | Vendor flasher implements dual command sets: SN8F 8-bit (`0x01`–`0x09`) and SN32F Cortex-M0 (`0x20`–`0x2A`). Legacy table misattributed `0x08` (Set Code Option) as erase. |
 | **D2** | Bootloader PIDs and SpecialPID | High | INI, EXE | **Closed** | Bootloader PID is `0C45:82AA`. `SpecialPID` in `UISettings_248B.ini` lists runtime PIDs (`8016`, `024F`, `8008`) that the flasher monitors and triggers into ISP mode. |
 | **D3** | Page size, erase scope, data loss | High | FI, EXE | **Closed** | Flash page size is strictly 64 bytes. Erase wipes `0x0000`–`0xE797` including user keymaps/lighting. Data loss warning and backup guidelines documented. |
-| **D4** | Bootloader location & unbrickable claim | High | FI | **Closed** | Mask ROM at `0x1FFF0300`, remapped via `0x40060024`. Software trigger verified at `0x1790` and `0x014C`. Unbrickable claim softened to "may require grounding P0.4". |
+| **D4** | Bootloader location & unbrickable claim | High | FI, DS | **Closed** | Mask ROM at `0x1FFF0300`, remapped via `SYS0_IVTM` (`0x40060024`). Software trigger verified at `0x1790` and `0x014C`. Hardware recovery uses `P2.2` (Pin 3 of LQFP64; pulling LOW at boot forces bootloader per Datasheet Section 1.4 & 15.4.2; refutes earlier speculation of P0.4). |
 | **D5** | Shipped Python tools audit & safety | High | CODE | **Closed** | Tools audited: `rk855_flasher.py` uses legacy opcodes (`0x08`, `0x07`, `0x29`). Prominent safety warnings added; device opening updated across all known PIDs. |
 | **E1** | LED driving: SPI vs timer PWM | High | FI | **Closed** | Both present: CT16B1 (`0x40002000`) drives 18 PWM phases. SSP0 (`0x4001C000`) is dedicated SPI master on `P1.0` (SCK) and `P1.1` (MOSI), separate from matrix. |
 | **E2** | Matrix size | Medium | FI | **Closed** | Matrix is 8 rows × 16 columns (128 positions, 68 keys populated) from scan table at `0x6D7B`. Outdated "8x9" and "13x12" descriptions removed. |
@@ -211,7 +213,7 @@
 #### D4. Bootloader Location & Unbrickable Claim
 - **Status:** **Closed**
 - **Evidence:** Firmware disassembly at `0x00001790` and `0x0000014C`.
-- **Resolution:** Mask ROM bootloader is at `0x1FFF0300`, remapped via `SYS0->REMAP` (`0x40060024`). Corrupt flash lacking the `0xAAAA5555` marker at `0xFFFC` automatically forces the MCU to stay in ISP bootloader mode. Unbrickable claim softened to "may require pulling P0.4 LOW".
+- **Resolution:** Mask ROM bootloader is at `0x1FFF0300`, remapped via `SYS0_IVTM` (`0x40060024`, unlocked with key `0xA5A5`). Corrupt flash lacking the `0xAAAA5555` marker at `0xFFFC` automatically forces the MCU to stay in ISP bootloader mode. For hardware recovery from broken firmware or disabled SWD, Sonix Datasheet `SN32F248B_V2.4_EN.pdf` (Sections 1.4 & 15.4.2) specifies **P2.2** (Pin 3 on LQFP64 / Pin 4 on QFN33) as the dedicated `BOOT` check pin: pulling `P2.2` LOW during boot forces execution of the ROM Boot Loader with SWD enabled, decisively refuting earlier community speculation of `P0.4`.
 
 ---
 

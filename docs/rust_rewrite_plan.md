@@ -33,6 +33,9 @@ This plan is written for an AI agent to execute phase by phase. The central rule
 
 ## 2. Known Doc Contradictions to Resolve
 
+> [!NOTE]
+> All 10 contradictions listed below (along with 25 additional items) have been definitively resolved with machine-level disassemblies and vendor datasheet verification. Refer to [inconsistencies.md](inconsistencies.md) for the verified resolutions.
+
 These must be settled in Phase 1 using evidence (device enumeration, USB captures, disassembly of the supplied image).
 
 | # | Topic | Conflict |

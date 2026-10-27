@@ -235,7 +235,7 @@ Firmware initialization at `0x000061CC` and scan routines confirm the pin assign
 | **Matrix Row Outputs** | `GPIO Port 0` (`0x40044000`) | 8 Row Drive Lines (Outputs) | `P0.8`, `P0.9`, `P0.10`, `P0.11`, `P0.12`, `P0.13`, `P0.14`, `P0.15` |
 | **Matrix Column Inputs**| `GPIO Port 3` (`0x4004A000`) | 16 Column Sense Lines (Inputs) | `P3.0` through `P3.11` (multiplexed with internal pull-ups) |
 | **SPI Master Interface**| `GPIO Port 1` (`0x40046000`) | Dedicated High-Speed SPI | `P1.0`: `SSP0_SCK`, `P1.1`: `SSP0_MOSI` |
-| **Hardware Boot Pin** | `GPIO Port 0` (`0x40044000`) | ISP Bootloader Force Pin | `P0.4` (Internal pull-up; pull LOW at power-on for hardware ISP) |
+| **Hardware Boot Pin** | `GPIO Port 2` (`0x40048000`) | ISP Bootloader Force Pin | `P2.2` (Pin 3 of LQFP64; internal pull-up; pull LOW at power-on for hardware ISP recovery, per Datasheet Section 1.4 & 15.4.2) |
 
 *(Note: `P1.0` and `P1.1` are dedicated to `SN_SSP0` at `0x4001C000` and do not share lines with switch rows).*
 

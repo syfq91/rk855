@@ -20,7 +20,7 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 | **Switch Matrix** | 8 Rows × 16 Columns scan matrix (128 positions, 68 keys populated with diode isolation) |
 | **LED Backlight Subsystem** | Multiplexed LED matrix driven via CT16B1 16-bit PWM timers (`0x40002040`) across 18 scanning phases (6 rows × 3 color phases: R, G, B) and SSP0 SPI controller (`0x4001C000`) |
 | **Hardware Variations** | **RGB Variant** (per-key RGB SMD LEDs) and **Single-Color Variant** (monochrome white or blue SMD LEDs). **Both share identical MCU, PCB architecture, and unified factory firmware.** |
-| **Hardware Boot Pin** | `P0.4` (Internal pull-up; grounded at boot to force ISP bootloader) |
+| **Hardware Boot Pin** | `P2.2` (Pin 3 of LQFP64; internal pull-up; grounded at boot to force ISP bootloader as verified in Sonix SN32F240B/248B Datasheet Section 1.4 & 15.4.2) |
 
 ---
 
@@ -43,7 +43,11 @@ rk855/
 │   ├── README.md                  # Documentation index & reading guide
 │   ├── configurator_protocol.md   # Configurator analysis: HID framing, lighting modes, key remap
 │   ├── firmware_flasher_protocol.md # Flasher analysis: ISP bootloader protocol & unlock command
-│   └── sn32f240b_firmware_analysis.md # MCU firmware deep-dive: Memory map, vectors, matrix scan
+│   ├── sn32f240b_firmware_analysis.md # MCU firmware deep-dive: Memory map, vectors, matrix scan
+│   ├── inconsistencies.md         # Inconsistency register: 35 items resolved with register-level proof
+│   ├── PROVENANCE.md              # Reverse-engineering methodology, toolchain, and verified digests
+│   ├── rust_rewrite_plan.md       # Implementation blueprint for native Rust configurator & flasher
+│   └── datasheets/                # Official manufacturer reference manuals (SN32F248B_V2.4_EN.pdf)
 ├── firmware/                      # Factory firmware dumps and specifications
 │   ├── README.md                  # Firmware memory regions, checksums, and flashing notes
 │   ├── SN32F240B_32.hex           # Intel HEX format (extracted from official updater)

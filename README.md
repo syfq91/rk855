@@ -152,6 +152,9 @@ python3 tools/rk855_ctl.py off
 ### 3.5 Firmware Flashing (`rk855_flasher.py`)
 Flash or verify firmware over the Sonix ISP USB protocol without external hardware debuggers:
 
+> [!WARNING]
+> **Experimental ISP Commands**: The Python flasher script currently implements legacy/experimental ISP opcodes (`0x01` handshake, `0x08` erase, `0x07` write, `0x29` reset). Official Sonix Cortex-M0 ISP specifications use an extended command set (`0x20`–`0x2A`: `0x24` Enable Erase, `0x25` Enable Program, `0x27` Return User Mode), while opcode `0x08` is `Set Code Option`. Do not flash on a keyboard you cannot afford to lose until packet captures confirm the transfer sequence on physical hardware.
+
 ```bash
 # Check device operating state (normal keyboard vs. bootloader)
 python3 tools/rk855_flasher.py info

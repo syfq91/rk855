@@ -10,16 +10,32 @@
 Royal Kludge RK855 (Sonix SN32F240B) In-System Programming (ISP) Flasher Tool
 Reverse-engineered from the official Windows firmware updater utility.
 
+CRITICAL SAFETY WARNING:
+The ISP flashing command set implemented in this tool uses legacy/experimental opcodes:
+- 0x01: Handshake
+- 0x08: Erase Flash
+- 0x07: Write Page
+- 0x06: Read / Verify Page
+- 0x29: Reboot / Reset
+Recent reverse engineering of the official Sonix updater (RK855_firmware_flasher.exe)
+reveals that Sonix Cortex-M0 (SN32F24xB) uses an extended command architecture
+(0x20 Enter ISP, 0x21 Get Version, 0x24 Enable Erase, 0x25 Enable Program, 0x27 Return User Mode),
+while opcode 0x08 is "Set Code Option" and 0x29 is "Get Code Option".
+DO NOT RUN WRITE OR ERASE ON HARDWARE YOU CANNOT AFFORD TO LOSE WITHOUT LIVE CAPTURE VALIDATION.
+
 Protocols:
-- Trigger Bootloader: HID Feature Report to VID 0x0C45, PID 0x8018
+- Trigger Bootloader: HID Feature Report to VID 0x0C45:0x8018 or VID 0x05AC:0x024F
   Magic payload: AA 42 89 5A FF 71 62 CC
 - Sonix ISP Bootloader: HID Feature Reports to VID 0x0C45, PID 0x82AA
 """
+
+from __future__ import annotations
 
 import argparse
 import os
 import sys
 import time
+from typing import Any
 
 try:
     import hid
@@ -28,6 +44,13 @@ except ImportError:
 
 KEYBOARD_VID = 0x0C45
 KEYBOARD_PID = 0x8018
+
+KNOWN_KEYBOARD_IDS = [
+    (0x0C45, 0x8018),  # Windows vendor profile
+    (0x05AC, 0x024F),  # Factory ROM Apple profile
+    (0x0C45, 0x8016),  # SpecialPID0
+    (0x0C45, 0x8008),  # SpecialPID2
+]
 
 BOOTLOADER_VID = 0x0C45
 BOOTLOADER_PID = 0x82AA
@@ -48,14 +71,24 @@ def require_hid():
 def trigger_bootloader() -> bool:
     """Sends the magic bootloader trigger command to the running keyboard."""
     require_hid()
-    print(f"[+] Connecting to keyboard (VID: 0x{KEYBOARD_VID:04X}, PID: 0x{KEYBOARD_PID:04X})...")
     dev = hid.device()
-    try:
-        dev.open(KEYBOARD_VID, KEYBOARD_PID)
-    except Exception as e:
-        print(f"[-] Could not open keyboard in normal mode: {e}")
+    opened = False
+    connected_vid, connected_pid = KEYBOARD_VID, KEYBOARD_PID
+
+    for vid, pid in KNOWN_KEYBOARD_IDS:
+        try:
+            dev.open(vid, pid)
+            connected_vid, connected_pid = vid, pid
+            opened = True
+            break
+        except Exception:
+            continue
+
+    if not opened:
+        print(f"[-] Could not open keyboard across known IDs {[(hex(v), hex(p)) for v, p in KNOWN_KEYBOARD_IDS]}.")
         return False
 
+    print(f"[+] Connected to keyboard in normal mode (VID: 0x{connected_vid:04X}, PID: 0x{connected_pid:04X})")
     try:
         print("[+] Sending ISP bootloader trigger command...")
         dev.send_feature_report(BOOT_TRIGGER_CMD)
@@ -153,6 +186,14 @@ def load_firmware(file_path: str) -> bytes:
 
 def flash_device(firmware_path: str, verify: bool = True) -> bool:
     """Flashes firmware into the SN32F240B MCU via Sonix ISP protocol."""
+    print("=" * 70)
+    print("CRITICAL SAFETY WARNING: EXPERIMENTAL ISP OPCODE IMPLEMENTATION")
+    print("The ISP commands in this tool (erase 0x08, write 0x07, reset 0x29) stem from")
+    print("early reverse engineering. Recent analysis of the vendor flasher binary reveals")
+    print("that on Sonix SN32F24xB Cortex-M0 devices, opcode 0x08 is Set Code Option,")
+    print("0x07 is Return User Mode, and 0x29 is Get Code Option. Flash erase/write must")
+    print("be validated against physical USB captures before running on critical hardware.")
+    print("=" * 70)
     fw_bytes = load_firmware(firmware_path)
     print(f"[+] Loaded firmware image: {firmware_path} ({len(fw_bytes)} bytes)")
 
@@ -248,11 +289,12 @@ def main():
     if not args.command or args.command == "info":
         require_hid()
         devices = hid.enumerate()
-        found_kb = any(d["vendor_id"] == KEYBOARD_VID and d["product_id"] == KEYBOARD_PID for d in devices)
+        found_kb = any((d["vendor_id"], d["product_id"]) in KNOWN_KEYBOARD_IDS for d in devices)
         found_bl = any(d["vendor_id"] == BOOTLOADER_VID and d["product_id"] == BOOTLOADER_PID for d in devices)
 
         if found_kb:
-            print(f"[+] Found RK855 Keyboard in Normal Mode (VID: 0x{KEYBOARD_VID:04X}, PID: 0x{KEYBOARD_PID:04X})")
+            matched = [d for d in devices if (d["vendor_id"], d["product_id"]) in KNOWN_KEYBOARD_IDS][0]
+            print(f"[+] Found RK855 Keyboard in Normal Mode (VID: 0x{matched['vendor_id']:04X}, PID: 0x{matched['product_id']:04X})")
         if found_bl:
             print(f"[+] Found RK855 Keyboard in ISP Bootloader Mode (VID: 0x{BOOTLOADER_VID:04X}, PID: 0x{BOOTLOADER_PID:04X})")
         if not found_kb and not found_bl:

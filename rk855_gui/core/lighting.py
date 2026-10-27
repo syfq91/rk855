@@ -55,7 +55,12 @@ def apply_custom_matrix(
     device: DeviceSender,
     colors: list[tuple[int, int, int]],
 ) -> None:
-    """Applies per-key RGB coloring for the 68 physical keys."""
+    """Applies per-key RGB coloring for the 68 physical keys.
+
+    NOTE: The official vendor protocol uses opcode [0x04, 0x13] with 19 64-byte reports
+    (1,216 bytes total: 76 16-byte records). The 3-packet 0x16 chunk implementation
+    below is an experimental legacy stub.
+    """
     # Ensure exactly 68 RGB values
     padded = list(colors[:68])
     if len(padded) < 68:

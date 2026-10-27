@@ -14,9 +14,12 @@ Protocol: USB HID Feature Reports (65 bytes: [ReportID(0x00), Opcode(0x04), ...]
 Device: VID 0x0C45, PID 0x8018
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 import time
+from typing import Any
 
 try:
     import hid
@@ -25,6 +28,13 @@ except ImportError:
 
 VID = 0x0C45
 PID = 0x8018
+
+KNOWN_KEYBOARD_IDS = [
+    (0x0C45, 0x8018),  # Windows vendor profile
+    (0x05AC, 0x024F),  # Factory ROM Apple profile
+    (0x0C45, 0x8016),  # SpecialPID0
+    (0x0C45, 0x8008),  # SpecialPID2
+]
 
 LIGHT_MODES = {
     0: "Static",
@@ -101,17 +111,20 @@ def open_device(vid: int = VID, pid: int = PID) -> hid.device:
         print("Error: 'hidapi' module not found. Install it with: pip install hidapi", file=sys.stderr)
         sys.exit(1)
     dev = hid.device()
-    try:
-        dev.open(vid, pid)
-        return dev
-    except Exception as e:
-        # Check permissions / availability
-        matched = [d for d in hid.enumerate() if d["vendor_id"] == vid and d["product_id"] == pid]
-        if not matched:
-            raise RuntimeError(f"RK855 keyboard not found (VID: 0x{vid:04X}, PID: 0x{pid:04X}). Check USB connection.")
-        raise PermissionError(
-            f"Found RK855, but failed to open device ({e}). Ensure you have write permissions (e.g. udev rules) or run with sudo."
-        )
+    for v, p in [(vid, pid)] + [pair for pair in KNOWN_KEYBOARD_IDS if pair != (vid, pid)]:
+        try:
+            dev.open(v, p)
+            return dev
+        except Exception:
+            continue
+
+    # Check permissions / availability
+    matched = [d for d in hid.enumerate() if (d["vendor_id"], d["product_id"]) in KNOWN_KEYBOARD_IDS]
+    if not matched:
+        raise RuntimeError(f"RK855 keyboard not found across known IDs {[(hex(v), hex(p)) for v, p in KNOWN_KEYBOARD_IDS]}. Check USB connection.")
+    raise PermissionError(
+        f"Found RK855, but failed to open device. Ensure you have write permissions (e.g. udev rules) or run with sudo."
+    )
 
 
 def send_feature(dev: hid.device, payload: list[int] | bytes) -> None:
@@ -157,7 +170,12 @@ def apply_lighting(
 
 
 def set_custom_rgb(colors_rgb: list[tuple[int, int, int]]) -> None:
-    """Uploads a custom 68-key per-key RGB matrix (3 consecutive HID packets)."""
+    """Uploads custom per-key RGB coloring.
+
+    NOTE: The official vendor protocol uses opcode [0x04, 0x13] with 19 64-byte reports
+    (1,216 bytes total: 76 16-byte records [status, R, G, B, ..., 0xAA, 0x55]).
+    The 3-packet 0x16 chunk implementation below is an experimental legacy stub.
+    """
     if len(colors_rgb) > 68:
         colors_rgb = colors_rgb[:68]
     elif len(colors_rgb) < 68:
@@ -199,15 +217,15 @@ def detect_devices() -> None:
     for d in devices:
         vid = d["vendor_id"]
         pid = d["product_id"]
-        if vid == VID and pid == PID:
-            print(f"[+] Found RK855 Keyboard in Normal Operating Mode:")
+        if (vid, pid) in KNOWN_KEYBOARD_IDS:
+            print(f"[+] Found RK855 Keyboard in Normal Operating Mode (VID: 0x{vid:04X}, PID: 0x{pid:04X}):")
             print(f"    Path:         {d['path']}")
             print(f"    Manufacturer: {d.get('manufacturer_string', 'Royal Kludge')}")
             print(f"    Product:      {d.get('product_string', 'RK855 Keyboard')}")
             print(f"    Release:      0x{d.get('release_number', 0):04X}")
             print(f"    Interface:    {d.get('interface_number', 0)}")
             found = True
-        elif vid == VID and pid == 0x82AA:
+        elif vid == 0x0C45 and pid == 0x82AA:
             print(f"[+] Found RK855 Keyboard in Sonix Bootloader (ISP) Mode:")
             print(f"    Path:         {d['path']}")
             print(f"    Product:      {d.get('product_string', 'SN32F240B Bootloader')}")

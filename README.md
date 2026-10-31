@@ -2,7 +2,7 @@
 
 A comprehensive reverse-engineering repository, protocol specification, and cross-platform tooling suite for the **Royal Kludge RK855 (RK68)** mechanical keyboard.
 
-This project documents the hardware architecture, microcontroller firmware, USB HID configuration protocol, and ROM In-System Programming (ISP) bootloader, providing open-source Python tools to control lighting and flash firmware on Linux, macOS, and Windows.
+This project documents the hardware architecture, microcontroller firmware, USB HID configuration protocol, and ROM In-System Programming (ISP) bootloader, providing both a production-grade native **Rust CLI toolchain** (`rk855`) and reference Python/PyQt6 tools for Linux, macOS, and Windows.
 
 ---
 
@@ -24,228 +24,229 @@ This project documents the hardware architecture, microcontroller firmware, USB 
 
 ---
 
-## 2. Repository Structure
+## 2. Feature Status & Safety Verification
+
+Every protocol feature in this project is audited and tracked with evidentiary backing in [`docs/PROTOCOL_STATUS.md`](docs/PROTOCOL_STATUS.md):
+
+### Verified On Physical Hardware (`verified-on-device`)
+- **Lighting Controls:** All 20 built-in lighting effects, brightness levels (0–4), speed levels (0–4), direction, and RGB color selection via atomic 22-packet configuration transactions.
+- **Flash Protection Modes:** `--live` mode (instant RAM updates without flash commit, eliminating flash memory wear) and `--persist` mode (commits parameters to MCU flash).
+- **Profile Switching:** Switching between Profile 1, Profile 2, and Profile 3 (`0x9000`, `0x90C0`, `0x9340` flash offsets).
+- **Key Remapping:** Full scan-code remapping table generation (4 blocks of 64 bytes = 256 bytes) and hardware factory reset (`remap reset`).
+- **Matrix & Status Query:** Hardware status and active matrix read-back via HID GET_REPORT chunks.
+- **Per-Key RGB Customization:** 18-block atomic configuration transactions targeting the 68 physical switch matrix positions.
+
+### Verified by Static Disassembly & Specifications (`verified-by-disassembly`)
+- **Cortex-M0 ISP Bootloader Protocol:** Full command set (`0x20` ISP Enter, `0x21` Version, `0x24` Erase, `0x25` Program, `0x27` Return User Mode, `0x2A` Data Check/Read).
+- **Firmware Integrity:** 64 KB image layout, ARM Thumb reset vector, Initial Stack Pointer verification, and `0xAAAA5555` flash validity marker at `0x0000FFFC`.
+- **Bootloader Mode Trigger:** Software jump report `AA 42 89 5A FF 71 62 CC` verified in ROM disassembly.
+- **Hardware Recovery Pin:** Pulling pin `P2.2` LOW forces Mask ROM bootloader mode without executing flash code ([`docs/RECOVERY.md`](docs/RECOVERY.md)).
+
+### Unverified & Known Limitations (`unverified`)
+- **Custom Macro Stream Format:** Payload sequence for user-defined macro playback (`04 15`) remains unverified until raw USB captures of vendor macro creation are recorded.
+- **Single-Color Hardware Flashing:** Unified firmware binary contains code paths for both monochrome and RGB hardware, but firmware flashing on single-color units has not yet been physically confirmed.
+
+> [!CAUTION]
+> **Firmware Flashing Risks**: In-System Programming writes directly to microcontroller flash. A power loss, cable disconnect, or corrupt binary can interrupt flashing. The `rk855` flasher enforces rigorous pre-flight validation, dry-run simulation, and per-page read-back verification. If flash is corrupted, physical recovery requires opening the keyboard case and grounding hardware boot pin `P2.2` (Pin 3 of the LQFP64 MCU). See [`docs/RECOVERY.md`](docs/RECOVERY.md) for step-by-step instructions.
+
+---
+
+## 3. Platform Setup & Driver Requirements
+
+### 3.1 Linux Permissions (`udev`)
+
+On Linux, non-root users require access to the kernel's `hidraw` device nodes. Because the keyboard **re-enumerates** with a different Product ID when entering ISP bootloader mode (`0C45:82AA`), the udev rules must grant access to both runtime and bootloader IDs.
+
+1. Install the provided udev rules:
+   ```bash
+   sudo cp udev/99-rk855.rules /etc/udev/rules.d/
+   sudo udevadm control --reload-rules
+   sudo udevadm trigger
+   ```
+2. Unplug and reconnect the keyboard.
+3. The rules grant access to the active seat user via `TAG+="uaccess"` for:
+   - `0C45:8018` (Standard Windows Profile)
+   - `05AC:024F` (Factory ROM Apple Profile)
+   - `0C45:8016` (Hardware Variant Profile 0)
+   - `0C45:8008` (Hardware Variant Profile 2)
+   - `0C45:82AA` (Sonix SN32F240B ROM ISP Bootloader)
+
+### 3.2 Windows Driver Setup
+
+- **Standard In-Box HID Driver:** Windows automatically binds its built-in USB HID class driver (`hidclass.sys` / `hidusb.sys`) to both the keyboard and the Sonix ISP bootloader (`0C45:82AA`).
+- **No Zadig or WinUSB Required:** The bootloader is a native USB HID class device (`bInterfaceClass = 0x03`).
+- > [!WARNING]
+  > **Do NOT use Zadig** to replace the bootloader or keyboard driver with WinUSB or libusb-win32. Doing so will prevent standard Windows HID APIs (`hidapi` / `hid.dll`) from opening the device.
+
+---
+
+## 4. Rust Tooling (`rk855` CLI)
+
+The project includes a modular, zero-dependency protocol library and command-line utility written in Rust.
+
+### 4.1 Building from Source
+
+Prerequisites: Rust stable toolchain (1.75+). On Linux, install `libudev-dev` and `pkg-config`.
+
+```bash
+# Clone the repository
+git clone https://github.com/syfq91/rk855.git
+cd rk855
+
+# Build the release binary
+cargo build --release --bin rk855
+
+# The binary is located at target/release/rk855 (or target/release/rk855.exe on Windows)
+```
+
+### 4.2 CLI Usage & Examples
+
+#### Device Detection & Hardware Probing
+```bash
+# Scan for connected RK855 keyboards and display interface details
+rk855 probe
+```
+
+#### Backlight & LED Effects
+```bash
+# List all 20 built-in lighting effects
+rk855 light modes
+
+# Set static solid color in live mode (RAM update without flash wear)
+rk855 light set 0 --color "#FF007F" --brightness 4 --speed 2 --live
+
+# Set dynamic effect (Wave mode 10) and commit to flash memory
+rk855 light set 10 --color rainbow --speed 3 --brightness 4 --persist
+
+# Turn off backlight
+rk855 light off
+```
+
+#### Profile Management
+```bash
+# Switch to Profile 1, 2, or 3
+rk855 profile switch 2
+```
+
+#### Key Remapping
+```bash
+# Remap Caps Lock to Left Control
+rk855 remap set "Caps Lock" "Left Control"
+
+# Reset all key remaps back to factory hardware matrix
+rk855 remap reset
+
+# Inspect active remap table (or query hardware matrix live)
+rk855 remap dump --query
+```
+
+#### Custom Per-Key RGB
+```bash
+# Set individual key color
+rk855 rgb set-key "Escape" "#FF0000" --live
+
+# Load full per-key RGB coloring from JSON file
+rk855 rgb load custom_theme.json --persist
+
+# Clear all custom per-key colors
+rk855 rgb clear
+```
+
+#### Firmware Verification & ISP Flashing
+```bash
+# Validate firmware image headers, vectors, checksum, and 0xAAAA5555 marker
+rk855 firmware check firmware/SN32F240B_32.hex
+
+# Read bootloader version and MCU ID (when connected in bootloader mode)
+rk855 isp info
+
+# Dry-run simulate full flash process against internal mock
+rk855 isp flash firmware/SN32F240B_32.hex --dry-run
+
+# Flash official firmware (requires explicit confirmation prompt)
+rk855 isp flash firmware/SN32F240B_32.hex
+```
+
+---
+
+## 5. Repository Structure
 
 ```
 rk855/
-├── README.md                      # Primary project overview, hardware specs, and quickstart
-├── .gitignore                     # Repository ignore rules
-├── pyproject.toml                 # uv project configuration and entry points
-├── uv.lock                        # Deterministic dependency lockfile
-├── rk855_gui.py                   # Desktop GUI executable entry point
-├── rk855_gui/                     # Modular PyQt6 desktop GUI implementation
-│   ├── app.py                     # Main window, tabs, and event handling
-│   ├── controller.py              # Hardware controller abstraction
-│   ├── flasher.py                 # In-app firmware flasher workflow
-│   ├── simulator.py               # Offline demo and mock simulator
-│   └── widgets/                   # Custom UI components (interactive keyboard layout, color picker)
+├── .github/workflows/             # Continuous Integration and Release automation
+│   ├── ci.yml                     # Multi-platform CI (fmt, clippy, unit & mock tests)
+│   └── release.yml                # Automated release packager and SHA-256 generator
+├── udev/
+│   └── 99-rk855.rules             # Linux udev permissions rules
+├── crates/                        # Native Rust workspace
+│   ├── rk855-proto/               # Pure no_std packet encoders, decoders, scan matrix
+│   ├── rk855-hid/                 # Transport layer abstraction (hidapi + mock transport)
+│   ├── rk855-config/              # High-level configuration transactions (light, remap, RGB)
+│   ├── rk855-isp/                 # Firmware image validator, parser & Cortex-M0 flasher client
+│   └── rk855-cli/                 # Command-line application (rk855)
 ├── docs/                          # Detailed reverse-engineering technical reports
 │   ├── README.md                  # Documentation index & reading guide
-│   ├── configurator_protocol.md   # Configurator analysis: HID framing, lighting modes, key remap
-│   ├── firmware_flasher_protocol.md # Flasher analysis: ISP bootloader protocol & unlock command
-│   ├── sn32f240b_firmware_analysis.md # MCU firmware deep-dive: Memory map, vectors, matrix scan
-│   ├── inconsistencies.md         # Inconsistency register: 35 items resolved with register-level proof
-│   ├── PROVENANCE.md              # Reverse-engineering methodology, toolchain, and verified digests
-│   ├── rust_rewrite_plan.md       # Implementation blueprint for native Rust configurator & flasher
-│   └── datasheets/                # Official manufacturer reference manuals (SN32F248B_V2.4_EN.pdf)
-├── firmware/                      # Factory firmware dumps and specifications
-│   ├── README.md                  # Firmware memory regions, checksums, and flashing notes
+│   ├── PROTOCOL_STATUS.md         # Status and claims verification ledger
+│   ├── RECOVERY.md                # Hardware pin P2.2 unbricking guide
+│   ├── CAPTURES.md                # USB packet captures analysis & packet offsets
+│   ├── configurator_protocol.md   # Configurator HID framing & transaction protocol
+│   ├── firmware_flasher_protocol.md # Flasher ISP bootloader protocol & opcodes
+│   ├── sn32f240b_firmware_analysis.md # MCU firmware deep-dive: Memory map & PWM timers
+│   ├── inconsistencies.md         # Inconsistency register: 35 items resolved
+│   └── datasheets/                # Official manufacturer reference manuals
+├── firmware/                      # Factory firmware dumps (unmodified extracted images)
 │   ├── SN32F240B_32.hex           # Intel HEX format (extracted from official updater)
 │   └── SN32F240B_32.bin           # Flat 64 KB binary image
-├── tools/                         # Cross-platform Python utilities
-│   ├── README.md                  # Tools usage manual and instructions
-│   ├── requirements.txt           # Python package requirements (hidapi, intelhex)
-│   ├── rk855_ctl.py               # CLI tool for lighting modes, colors, brightness & speed
-│   ├── rk855_flasher.py           # CLI tool for ISP flashing, verification, and bootloader trigger
-│   └── udev/
-│       └── 99-rk855.rules         # Linux udev rules for non-root USB access
-└── vendor/                        # Original vendor distribution files
-    ├── README.md                  # Structure and runtime requirements
+├── tools/                         # Legacy Python utilities & reference scripts
+│   ├── rk855_ctl.py               # Python lighting CLI
+│   ├── rk855_flasher.py           # Python flasher script
+│   └── rk855_gui.py               # PyQt6 desktop application
+└── vendor/                        # Factory executables & disassembled artifacts
     ├── binaries/                  # Original Windows executables (with SHA-256 hashes)
-    │   ├── README.md
-    │   ├── RK855_configurator.exe # Factory configurator installer (InstallShield)
-    │   └── RK855_firmware_flasher.exe # Factory firmware flasher
-    ├── configurator/              # Unpacked configurator files
-    │   ├── app/                   # Reconstituted standalone app (DeviceDriver.exe, XMLs, fonts)
-    │   └── installer/             # Raw InstallShield cabinet archives & support DLLs
-    └── flasher/                   # Extracted flasher settings, chip profiles & UI bitmaps
+    ├── configurator/              # Unpacked configurator files & XML profiles
+    └── flasher/                   # Extracted flasher settings & profiles
 ```
 
 ---
 
-## 3. Quickstart & CLI Tools
+## 6. Troubleshooting Guide
 
-### 3.1 Installation
+### 6.1 Linux: "Permission denied" or "Device not found"
+- Verify that `udev/99-rk855.rules` is copied to `/etc/udev/rules.d/99-rk855.rules`.
+- Run `sudo udevadm control --reload-rules && sudo udevadm trigger`.
+- Ensure your user account is in the active local desktop seat (`loginctl show-user $USER`).
+- Check device presence: `ls -l /dev/hidraw*` to ensure permissions reflect `0660` with your user or group.
 
-#### Option A: Using `uv` (Recommended — Fast & Self-Managing)
-Install [uv](https://docs.astral.sh/uv/) (no manual virtualenv activation needed):
+### 6.2 Bootloader Mode Re-enumeration Delay
+- When entering bootloader mode (`rk855 isp enter` or `AA 42 89 5A...`), the keyboard disconnects from USB and re-enumerates as `0C45:82AA`.
+- Operating systems typically require 500ms–2000ms to enumerate the new HID device node. If running commands immediately, wait a moment or rerun `rk855 probe`.
 
-```bash
-# Install uv (Linux/macOS)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone repository
-git clone https://github.com/syfq91/rk855.git
-cd rk855
-
-# Sync project dependencies
-uv sync
-```
-
-#### Option B: Standard Python (pip & venv)
-```bash
-git clone https://github.com/syfq91/rk855.git
-cd rk855
-
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r tools/requirements.txt
-```
-
-### 3.2 Linux USB Permissions (udev)
-To allow non-root users to configure and flash the keyboard:
-
-```bash
-sudo cp tools/udev/99-rk855.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-### 3.3 Graphical User Interface (`rk855_gui.py`)
-Launch the cross-platform desktop configurator & firmware flasher:
-
-```bash
-# With uv (recommended)
-uv run rk855-gui
-# Or: uv run rk855_gui.py
-# Or directly: ./rk855_gui.py
-
-# Launch in Simulator / Demo mode (offline preview)
-uv run rk855-gui --mock
-
-# Jump directly to Key Remapping tab
-uv run rk855-gui --remap
-
-# Jump directly to Firmware Flasher tab
-uv run rk855-gui --flasher
-```
-
-The GUI provides an interactive 68-key physical keyboard layout for per-key RGB coloring and button remapping (standard HID keys, multimedia, mouse actions, disable keys), full controls for all 20 built-in lighting effects, and a safe ISP firmware flasher with live progress bar and terminal logs.
-
-### 3.4 Backlight CLI Control (`rk855_ctl.py`)
-Control backlight modes, custom RGB colors, brightness, and speed from the terminal:
-
-```bash
-# Detect connected keyboard
-python3 tools/rk855_ctl.py info
-
-# List built-in hardware lighting modes
-python3 tools/rk855_ctl.py list-modes
-
-# Set solid color (hex, RGB, or named color)
-python3 tools/rk855_ctl.py color cyan
-python3 tools/rk855_ctl.py color "#FF007F" --brightness 4
-
-# Set dynamic effect (e.g. Ripples mode 14, speed 2, purple)
-python3 tools/rk855_ctl.py mode 14 --color purple --speed 2 --brightness 3
-
-# Turn off backlight
-python3 tools/rk855_ctl.py off
-```
-
-### 3.5 Firmware Flashing (`rk855_flasher.py`)
-Flash or verify firmware over the Sonix ISP USB protocol without external hardware debuggers:
-
-> [!WARNING]
-> **Experimental ISP Commands**: The Python flasher script currently implements legacy/experimental ISP opcodes (`0x01` handshake, `0x08` erase, `0x07` write, `0x29` reset). Official Sonix Cortex-M0 ISP specifications use an extended command set (`0x20`–`0x2A`: `0x24` Enable Erase, `0x25` Enable Program, `0x27` Return User Mode), while opcode `0x08` is `Set Code Option`. Do not flash on a keyboard you cannot afford to lose until packet captures confirm the transfer sequence on physical hardware.
-
-```bash
-# Check device operating state (normal keyboard vs. bootloader)
-python3 tools/rk855_flasher.py info
-
-# Reboot keyboard into Sonix ISP bootloader
-python3 tools/rk855_flasher.py bootloader
-
-# Flash and verify official firmware hex
-python3 tools/rk855_flasher.py flash firmware/SN32F240B_32.hex
-
-# Reboot back to keyboard firmware
-python3 tools/rk855_flasher.py reboot
-```
+### 6.3 Hardware Unbricking & ROM Recovery
+- If firmware flashing is interrupted by power failure or a corrupted image is flashed, the keyboard may not boot into user firmware.
+- The Sonix SN32F240B microcontroller includes an immutable Mask ROM bootloader at `0x1FFF0300` that cannot be erased or corrupted.
+- To force bootloader mode from hardware:
+  1. Unplug the keyboard.
+  2. Open the keyboard enclosure and locate the SN32F240B chip.
+  3. Ground Pin 3 (`P2.2`) with a jumper wire or tweezers to GND.
+  4. Plug in the USB cable while holding `P2.2` low, then release after 1 second.
+  5. The device will enumerate as `0C45:82AA`, ready for recovery flashing via `rk855 isp flash`.
+  6. See [`docs/RECOVERY.md`](docs/RECOVERY.md) for detailed schematics and pin diagrams.
 
 ---
 
-## 4. Protocol Summary & Reference
-
-### 4.1 USB HID Configuration Framing
-All configuration commands are transmitted as **65-byte USB HID Feature Reports** (`Report ID 0x00`):
-
-```
-+-----------+------------+---------------+--------------------------------+
-| Byte 0    | Byte 1     | Byte 2        | Bytes 3 .. 64                  |
-| 0x00      | 0x04       | Subcommand    | Command Arguments & Zero Pad   |
-| Report ID | Magic Op   |               |                                |
-+-----------+------------+---------------+--------------------------------+
-```
-
-A standard lighting configuration sequence consists of four atomic packets:
-1. **Begin Configuration**: `0x04 0x18`
-2. **Apply Parameters**: `0x04 0x11 [Mode] [ColorType] [R] [G] [B] [Brightness] [Speed] [Direction]`
-3. **Commit to Flash**: `0x04 0x02`
-4. **Live Synchronization**: `0x04 0xF0`
-
-### 4.2 Built-in RGB Lighting Modes
-| ID | Mode Name (Display / Descriptive) | Vendor String (`1033.lan`) | Description |
-| :---: | :--- | :--- | :--- |
-| `0` | **Static** | `Static` | Continuous solid color illumination across all keys. |
-| `1` | **Single On** | `SingleOn` | Reactive lighting: pressed keys illuminate and fade. |
-| `2` | **Single Off** | `SingleOff` | Inverted reactive: keys turn off upon press. |
-| `3` | **Glittering** | `Glittering` | Random keys twinkle independently. |
-| `4` | **Falling** | `Falling` | Rain-like vertical color cascade. |
-| `5` | **Color Cycling** | `Colourful` | Full keyboard smooth RGB hue transition. |
-| `6` | **Breathing** | `Breath` | Pulsing fade in and fade out. |
-| `7` | **Spectrum** | `Spectrum` | Color cycling across spectrum. |
-| `8` | **Outward** | `Outward` | Center-out radial expansion. |
-| `9` | **Scrolling** | `Scrolling` | Horizontal wave scrolling. |
-| `10` | **Wave** | `Rolling` | Continuous rainbow angular wave. |
-| `11` | **Accumulate** | `Rotating` | Keys progressively fill up the board. |
-| `12` | **Windmill** | `Explode` | Rotating angular color wheel. |
-| `13` | **Colorful Waterfall** | `Launch` | Vertical dual-tone waterfall. |
-| `14` | **Blossoming / Ripples** | `Ripples` | Key press generates expanding circular ripple. |
-| `15` | **Flowing** | `Flowing` | Stream-like linear color movement. |
-| `16` | **Constant Rainbow** | `Pulsating` | Static multi-colored gradient matrix. |
-| `17` | **Sine Wave** | `Tilt` | Sinusoidal oscillating brightness wave. |
-| `18` | **Shadow** | `Shuttle` | Trailing shadows following key releases. |
-| `19` | **Backlight Off** | `Close Backlight` | All LEDs disabled. |
-
-### 4.3 Bootloader Unlock Command
-To switch from user firmware into the Sonix ISP bootloader, issue this 9-byte Feature Report to `VID: 0x05AC`, `PID: 0x024F` or `VID: 0x0C45`, `PID: 0x8018`:
-```
-0x00 0xAA 0x42 0x89 0x5A 0xFF 0x71 0x62 0xCC
-```
-
-### 4.4 Single-Color LED Variant Compatibility
-The RK855 is sold in two hardware variations: an **RGB variant** and a **Single-Color LED variant** (pure white or blue LEDs). Reverse-engineering of `SN32F240B_32.bin` via **REA** confirmed:
-- **Unified Factory Firmware:** Both hardware variants share the exact same MCU firmware image and 8-row × 16-column matrix layout.
-- **18-Phase Scanning Loop:** The firmware timer interrupt (`0x00006252`) modulates 18 multiplexing phases (6 rows × 3 color buffers: Red `0x2000096C`, Green `0x20000A68`, Blue `0x20000B64`).
-- **PWM Modulation:** Built-in lighting animations, brightness levels (0–4), and speed levels (0–4) modulate via hardware PWM match registers (`0x40002040`). In monochrome modes, the firmware drives all three color channels simultaneously ($R=G=B$).
-- **Color Commands:** On single-color hardware, monochrome LEDs illuminate in their physical color (e.g. white), and color settings change PWM duty cycles rather than physical hue.
-- **Flashing Compatibility:** Analysis confirms firmware code parity; however, flashing on single-color units is considered believed compatible pending verified hardware captures.
-
----
-
-## 5. Firmware Checksums & Verification
+## 7. Firmware Verification & Hashes
 
 | Target | File | Size | SHA-256 Checksum |
 | :--- | :--- | :--- | :--- |
+| **Official Firmware (HEX)** | `firmware/SN32F240B_32.hex` | 166,843 B | `ba0f38cb1276077959f8851b2bd38db524d495c980837e549f91ed8ba1d592f0` |
+| **Normalized Firmware (BIN)**| `firmware/SN32F240B_32.bin` | 65,536 B | `1e1be3a56ba5785cbd3922c9eb2ae08748796bdba6fd4e5e87df336bea311ab6` |
 | **Configurator Installer** | `vendor/binaries/RK855_configurator.exe` | 9,116,150 B | `d31b8e8cda53c595809be2ea7f9c86b2bdb945e277a4e0f9f2504c53e2fbe7f0` |
-| **Firmware Flasher** | `vendor/binaries/RK855_firmware_flasher.exe` | 1,917,952 B | `976d7c345492ea2f3e6a51d110b96570d9eddcce97f1cead45613f08a77d4796` |
-| **Factory Firmware (HEX)** | `firmware/SN32F240B_32.hex` | 166,843 B | `ba0f38cb1276077959f8851b2bd38db524d495c980837e549f91ed8ba1d592f0` |
-| **Factory Firmware (BIN)** | `firmware/SN32F240B_32.bin` | 65,536 B | `1e1be3a56ba5785cbd3922c9eb2ae08748796bdba6fd4e5e87df336bea311ab6` |
+| **Firmware Flasher Executable** | `vendor/binaries/RK855_firmware_flasher.exe` | 1,917,952 B | `976d7c345492ea2f3e6a51d110b96570d9eddcce97f1cead45613f08a77d4796` |
 
 ---
 
-## 6. License & Disclaimer
+## 8. License & Disclaimers
 
-- The reverse-engineering documentation, Python tooling, and protocol specifications are released under the **MIT License**.
-- Vendor executables, firmware binaries, and artwork remain the intellectual property of **Royal Kludge / Shenzhen Beiying Electronic Technology Co., Ltd.** and are provided for educational, interoperability, and backup purposes only.
+- The reverse-engineering documentation, Rust crates, Python tools, and protocol specifications are released under the **MIT License**.
+- Vendor executables, firmware binaries, and artwork remain the intellectual property of **Royal Kludge / Shenzhen Beiying Electronic Technology Co., Ltd.** and are referenced for interoperability, research, and backup purposes only.
+- Pre-compiled GitHub release assets contain only open-source code and never bundle proprietary vendor firmware.

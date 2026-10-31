@@ -1,0 +1,29 @@
+# Udev rules for Royal Kludge RK855 (RK68) Mechanical Keyboard & Sonix ISP Bootloader
+# Copy this file to /etc/udev/rules.d/99-rk855.rules and reload:
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# These rules grant access to the active seat user (TAG+="uaccess") and plugdev group
+# without requiring root permissions.
+#
+# The keyboard re-enumerates when switching into ISP bootloader mode (0c45:82aa)
+# or back to user firmware (0c45:8018 / 05ac:024f / 0c45:8016 / 0c45:8008).
+
+# Royal Kludge RK855 (Windows Profile: 0c45:8018)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8018", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8018", MODE="0660", TAG+="uaccess"
+
+# Royal Kludge RK855 (Factory ROM Apple Profile: 05ac:024f)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="024f", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="024f", MODE="0660", TAG+="uaccess"
+
+# Royal Kludge RK855 Alternative Hardware Profile 0 (0c45:8016)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8016", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8016", MODE="0660", TAG+="uaccess"
+
+# Royal Kludge RK855 Alternative Hardware Profile 2 (0c45:8008)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8008", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="8008", MODE="0660", TAG+="uaccess"
+
+# Sonix SN32F240B ROM In-System Programming (ISP) Bootloader (0c45:82aa)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="82aa", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0c45", ATTRS{idProduct}=="82aa", MODE="0660", TAG+="uaccess"

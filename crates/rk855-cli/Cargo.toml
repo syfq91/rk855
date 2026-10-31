@@ -10,7 +10,7 @@ name = "rk855"
 path = "src/main.rs"
 
 [dependencies]
-rk855-proto.workspace = true
+rk855-proto = { workspace = true, features = ["serde"] }
 rk855-hid.workspace = true
 rk855-config.workspace = true
 rk855-isp.workspace = true

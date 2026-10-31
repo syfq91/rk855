@@ -33,13 +33,13 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
 
 | Claim ID | Feature / Command | Wire / Payload Format | Status | Technical Details |
 |---|---|---|:---:|---|
-| **CFG-01** | Begin Lighting Config | `04 18 [0x00 * 62]` | `verified-by-capture` | Captured in `test_1.pcap` at packet [0081] and `test_2.pcap`. Inter-packet delay ~10ms. |
-| **CFG-02** | Set Lighting Parameters | `04 11 <mode> <type> <R> <G> <B> <bright> <speed> <dir> [0x00 * 54]` | `verified-by-disassembly` | Modes: 0..19 (`0x00`–`0x13`). Brightness: 0..4. Speed: 0..4 (defaults to `0x0A` in driver). Direction: 0 (LTR) or 1 (RTL). Color type: 0 (fixed), 1 (RGB), 7 (spectrum), 8 (rainbow). |
-| **CFG-03** | Commit Configuration | `04 02 [0x00 * 62]` | `verified-by-capture` | Captured in `test_1.pcap` at packet [0083] and [0085]. Stages flash writes to user sector. |
-| **CFG-04** | PWM Reload | `04 F0 [0x00 * 62]` | `verified-by-capture` | Captured in `test_1.pcap` at packet [0084] (10.9ms after `04 02`). Applies PWM changes immediately. |
+| **CFG-01** | Begin Lighting Config | `04 18 [0x00 * 62]` | `verified-on-device` | Captured in `test_1.pcap` at packet [0081] and verified on physical hardware. Initiates lighting transaction buffer in RAM. |
+| **CFG-02** | Set Lighting Parameters | `04 11 <mode> <type> <R> <G> <B> <bright> <speed> <dir> [0x00 * 54]` | `verified-on-device` | Modes: 0..19 (`0x00`–`0x13`). Brightness: 0..4 (mapped to 0..15). Speed: 0..4 (mapped to 1..10, `0x0A` is driver maximum/default). Direction: 0 (LTR) or 1 (RTL). Color type: 0 (fixed), 1 (RGB), 7 (spectrum), 8 (rainbow). Verified on physical hardware in direct sequence mode. |
+| **CFG-03** | Commit Configuration | `04 02 [0x00 * 62]` | `verified-on-device` | Captured in `test_1.pcap` (packets [0083], [0085], device ACKs with flash target `0x85D8`/`0x85C8`). Verified on physical hardware in `--persist` mode. Omitted in `--live` mode to prevent flash memory wear. |
+| **CFG-04** | PWM Reload | `04 F0 [0x00 * 62]` | `verified-on-device` | Captured in `test_1.pcap` packet [0084] (10.9ms after commit). Verified on physical hardware: immediately triggers timer reload to display lighting configuration without reboot. |
 | **CFG-05** | Profile Switching | `04 F1` (Profile 1), `04 F2` (Profile 2), `04 F3` (Profile 3) | `verified-by-disassembly` | Remaps active RAM pointer to Flash profile offsets `0x9000`, `0x90C0`, and `0x9340`. |
-| **CFG-06** | Custom Per-Key RGB Header | `04 13 00 00 00 00 00 00 12 [0x00 * 55]` | `verified-by-capture` | Captured in `test_1.pcap` packet [0082] and `test_2.pcap`. Payload byte 8 contains block count `0x12` (18 blocks). Precedes the 18 data blocks in 22-packet transaction. |
-| **CFG-07** | Custom Per-Key RGB Data | 18 blocks of 64 bytes (`0x480` = 1,152 bytes) | `verified-by-capture` | Captured in `test_1.pcap` and `test_2.pcap`. Blocks 1–5 hold mode presets, Blocks 6–8 zero padding, Blocks 9–17 key records (`0x80` status), Block 18 active mode descriptor. |
+| **CFG-06** | Custom Per-Key RGB Header | `04 13 00 00 00 00 00 00 12 [0x00 * 55]` | `verified-on-device` | Captured in `test_1.pcap` packet [0082] and `test_2.pcap`. Payload byte 8 contains block count `0x12` (18 blocks). Precedes the 18 data blocks in 22-packet atomic transaction. Verified on physical hardware. |
+| **CFG-07** | Custom Per-Key RGB Data | 18 blocks of 64 bytes (`0x480` = 1,152 bytes) | `verified-on-device` | Captured in `test_1.pcap` and `test_2.pcap`. Blocks 1–5 hold mode presets, Blocks 6–8 zero padding, Blocks 9–17 key records (`0x80` status), Block 18 active mode descriptor. Verified on physical hardware. |
 | **CFG-08** | Begin Key Remapping | `04 20 00 00 00 00 00 00 04 [0x00 * 55]` | `verified-by-disassembly` | Payload byte 8 contains block count `0x04` (4 blocks = 256 bytes follow). |
 | **CFG-09** | Key Remapping Table Data | 4 blocks of 64 bytes (256 bytes total) | `verified-by-disassembly` | 128 tuples: `[PhysicalMatrixIndex, TargetKeyCode]`. Standard categories (100–125) are mapped in hardware. Categories 126–129 (Launch App, Open URL, String Macro) require host software. |
 | **CFG-10** | Begin Macro Configuration | `04 19 [0x00 * 62]` | `verified-by-disassembly` | Staged in flash user data block. |
@@ -67,4 +67,5 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
 ## 4. Open Blockers & Verification Plan
 
 1. **CFG-11 (Macro Stream Layout):** Needs packet capture of vendor software recording a macro to verify byte-level delay/key formatting.
-2. **Phase 2 & Phase 3 Milestones:** Packet builders and HID transport verified; golden vectors to be tested against captured traces.
+2. **Phase 3 Verified on Hardware:** Both atomic 22-packet transaction and direct sequence modes, along with `--live` (RAM update without flash wear) and `--persist` (flash commit `04 02`), have been verified against connected RK855 hardware (`0C45:8018`).
+3. **Single-Color Variant Safety:** Retained as `unverified` pending physical testing on a monochrome LED board variant. Unified firmware binary contains code paths for both, but single-color users should exercise caution.

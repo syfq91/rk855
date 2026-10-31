@@ -82,6 +82,118 @@ impl LightMode {
             Self::BacklightOff => "Backlight Off",
         }
     }
+
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::Static => "static",
+            Self::SingleOn => "single-on",
+            Self::SingleOff => "single-off",
+            Self::Glittering => "glittering",
+            Self::Falling => "falling",
+            Self::ColorCycling => "color-cycling",
+            Self::Breathing => "breathing",
+            Self::Spectrum => "spectrum",
+            Self::Outward => "outward",
+            Self::Scrolling => "scrolling",
+            Self::Wave => "wave",
+            Self::Accumulate => "accumulate",
+            Self::Windmill => "windmill",
+            Self::ColorfulWaterfall => "colorful-waterfall",
+            Self::BlossomingRipples => "blossoming-ripples",
+            Self::Flowing => "flowing",
+            Self::ConstantRainbow => "constant-rainbow",
+            Self::SineWave => "sine-wave",
+            Self::Shadow => "shadow",
+            Self::BacklightOff => "backlight-off",
+        }
+    }
+
+    pub fn description(self) -> &'static str {
+        match self {
+            Self::Static => "Solid color backlight without animation",
+            Self::SingleOn => "Keys light up when pressed, then turn off",
+            Self::SingleOff => "Keys turn off when pressed, then turn on",
+            Self::Glittering => "Glittering star effect across keys",
+            Self::Falling => "Vertical falling light drops",
+            Self::ColorCycling => "Cycles continuously through solid colors",
+            Self::Breathing => "Smooth pulsing breath effect",
+            Self::Spectrum => "Full keyboard color spectrum animation",
+            Self::Outward => "Light ripples outward from center",
+            Self::Scrolling => "Light waves scroll horizontally",
+            Self::Wave => "Smooth continuous wave propagation",
+            Self::Accumulate => "Falling blocks accumulate at bottom",
+            Self::Windmill => "Rotating windmill / pinwheel light effect",
+            Self::ColorfulWaterfall => "Multi-color vertical cascading waterfall",
+            Self::BlossomingRipples => "Expanding ripple rings on key press",
+            Self::Flowing => "Horizontal flowing rainbow stream",
+            Self::ConstantRainbow => "Dynamic rotating full-spectrum rainbow",
+            Self::SineWave => "Undulating sine wave light pattern",
+            Self::Shadow => "Reactive fading trail behind keypresses",
+            Self::BacklightOff => "Turn off all backlight LEDs",
+        }
+    }
+
+    pub fn supports_color(self) -> bool {
+        !matches!(
+            self,
+            Self::BacklightOff
+                | Self::Spectrum
+                | Self::ColorCycling
+                | Self::ConstantRainbow
+                | Self::Flowing
+                | Self::ColorfulWaterfall
+        )
+    }
+
+    pub fn supports_speed(self) -> bool {
+        !matches!(self, Self::Static | Self::BacklightOff)
+    }
+
+    pub fn supports_direction(self) -> bool {
+        matches!(
+            self,
+            Self::Scrolling | Self::Wave | Self::Windmill | Self::Flowing | Self::SineWave
+        )
+    }
+
+    pub fn from_name_or_slug(s: &str) -> Option<Self> {
+        let s = s.trim();
+        if let Ok(num) = s.parse::<u8>() {
+            return Self::from_u8(num);
+        }
+        if let Some(hex_str) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+            if let Ok(num) = u8::from_str_radix(hex_str, 16) {
+                return Self::from_u8(num);
+            }
+        }
+        for mode in Self::ALL {
+            if mode.slug().eq_ignore_ascii_case(s) || mode.name().eq_ignore_ascii_case(s) {
+                return Some(mode);
+            }
+        }
+        // Common abbreviations & aliases
+        if s.eq_ignore_ascii_case("breath") {
+            Some(Self::Breathing)
+        } else if s.eq_ignore_ascii_case("off") {
+            Some(Self::BacklightOff)
+        } else if s.eq_ignore_ascii_case("ripple") || s.eq_ignore_ascii_case("ripples") {
+            Some(Self::BlossomingRipples)
+        } else if s.eq_ignore_ascii_case("rainbow") || s.eq_ignore_ascii_case("explode") {
+            Some(Self::ConstantRainbow)
+        } else if s.eq_ignore_ascii_case("waterfall") {
+            Some(Self::ColorfulWaterfall)
+        } else if s.eq_ignore_ascii_case("flow") {
+            Some(Self::Flowing)
+        } else if s.eq_ignore_ascii_case("scroll") {
+            Some(Self::Scrolling)
+        } else if s.eq_ignore_ascii_case("glitter") {
+            Some(Self::Glittering)
+        } else if s.eq_ignore_ascii_case("cycle") {
+            Some(Self::ColorCycling)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -104,6 +216,32 @@ impl ColorType {
             _ => None,
         }
     }
+
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::FixedSingleColor => "fixed",
+            Self::RgbCustom => "custom",
+            Self::SpectrumCycle => "spectrum",
+            Self::DynamicRainbow => "rainbow",
+        }
+    }
+
+    pub fn from_str_name(s: &str) -> Option<Self> {
+        let s = s.trim();
+        if s.eq_ignore_ascii_case("fixed") || s.eq_ignore_ascii_case("single") {
+            Some(Self::FixedSingleColor)
+        } else if s.eq_ignore_ascii_case("rgb") || s.eq_ignore_ascii_case("custom") {
+            Some(Self::RgbCustom)
+        } else if s.eq_ignore_ascii_case("spectrum") || s.eq_ignore_ascii_case("cycle") {
+            Some(Self::SpectrumCycle)
+        } else if s.eq_ignore_ascii_case("rainbow") || s.eq_ignore_ascii_case("dynamic") {
+            Some(Self::DynamicRainbow)
+        } else if let Ok(val) = s.parse::<u8>() {
+            Self::from_u8(val)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -120,6 +258,34 @@ impl Direction {
             0x00 => Some(Self::LeftToRight),
             0x01 => Some(Self::RightToLeft),
             _ => None,
+        }
+    }
+
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::LeftToRight => "ltr",
+            Self::RightToLeft => "rtl",
+        }
+    }
+
+    pub fn from_str_name(s: &str) -> Option<Self> {
+        let s = s.trim();
+        if s.eq_ignore_ascii_case("ltr")
+            || s.eq_ignore_ascii_case("left")
+            || s.eq_ignore_ascii_case("left-to-right")
+            || s.eq_ignore_ascii_case("clockwise")
+            || s == "0"
+        {
+            Some(Self::LeftToRight)
+        } else if s.eq_ignore_ascii_case("rtl")
+            || s.eq_ignore_ascii_case("right")
+            || s.eq_ignore_ascii_case("right-to-left")
+            || s.eq_ignore_ascii_case("counter-clockwise")
+            || s == "1"
+        {
+            Some(Self::RightToLeft)
+        } else {
+            None
         }
     }
 }

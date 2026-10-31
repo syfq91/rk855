@@ -133,6 +133,34 @@ impl HidApiTransport {
         Self::open_path(&candidate.path)
     }
 
+    /// Attempts to open the Sonix Mask ROM bootloader interface (0C45:82AA).
+    pub fn open_bootloader() -> Result<Self, HidTransportError> {
+        let devices = probe_devices()?;
+        let candidate = devices.iter().find(|d| d.is_bootloader()).ok_or(
+            HidTransportError::DeviceNotFound {
+                vid: BOOTLOADER_VID,
+                pid: BOOTLOADER_PID,
+            },
+        )?;
+
+        Self::open_path(&candidate.path)
+    }
+
+    /// Polls for the Sonix Mask ROM bootloader device (0C45:82AA) to enumerate on the USB bus with timeout.
+    pub fn wait_for_bootloader(timeout: Duration) -> Result<Self, HidTransportError> {
+        let start = std::time::Instant::now();
+        while start.elapsed() < timeout {
+            if let Ok(transport) = Self::open_bootloader() {
+                return Ok(transport);
+            }
+            thread::sleep(Duration::from_millis(250));
+        }
+        Err(HidTransportError::DeviceNotFound {
+            vid: BOOTLOADER_VID,
+            pid: BOOTLOADER_PID,
+        })
+    }
+
     /// Sets custom inter-packet pacing delay (default is 10 ms).
     pub fn set_inter_packet_delay(&mut self, delay: Duration) {
         self.inter_packet_delay = delay;

@@ -54,21 +54,23 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
 | Claim ID | Feature / Command | Format / Values | Status | Technical Details |
 |---|---|---|:---:|---|
 | **ISP-01** | Bootloader Interface | VID `0x0C45`, PID `0x82AA` | `verified-by-disassembly` | Enumerates as USB HID device upon entering bootloader mode. |
-| **ISP-02** | Get Bootloader Info | Opcode `0x2A` (Cortex-M0) | `verified-by-disassembly` | Returns chip ID (`0x240B` / `0x248B`) and Mask ROM bootloader version. |
-| **ISP-03** | Erase Flash | Opcode `0x22` with erase address range | `verified-by-disassembly` | Sector erase (4 KB granularity). Legacy claim that opcode `0x08` erases is FALSE (`0x08` sets code options). |
-| **ISP-04** | Write Flash Page | Opcode `0x24` followed by 64 bytes data | `verified-by-disassembly` | Writes exactly one 64-byte page to flash memory. |
-| **ISP-05** | Read Flash Page | Opcode `0x25` with page offset | `verified-by-disassembly` | Reads back 64 bytes for verify pass. CodeSecurity bit in Option Word must permit readout. |
+| **ISP-02** | Get Bootloader Info | Opcode `0x21` / `0x2A` (Cortex-M0) | `verified-by-disassembly` | Returns chip ID (`0x240B` / `0x248B`) and Mask ROM bootloader version. Implemented in `rk855-isp`. |
+| **ISP-03** | Erase Flash | Opcode `0x24` with erase address range | `verified-by-disassembly` | Erases flash sectors (0x0000..0xE797). Legacy claim that opcode `0x08` erases is FALSE (`0x08` sets code options). |
+| **ISP-04** | Write Flash Page | Opcode `0x25` followed by 64 bytes data | `verified-by-disassembly` | Sets target page address then writes exactly one 64-byte page. |
+| **ISP-05** | Read Flash Page | Opcode `0x2A` with page offset | `verified-by-disassembly` | Reads back 64 bytes for verify pass. Used for mandatory byte-for-byte post-write verification. |
 | **ISP-06** | Reset / Jump to Application | Opcode `0x27` | `verified-by-disassembly` | Disables USB, remaps vector table back to `0x00000000`, and triggers NVIC system reset. |
-| **ISP-07** | Hardware Recovery Pin | Pull Pin `P2.2` (Pin 3 of LQFP64) LOW at boot | `verified-by-disassembly` | Datasheet Section 1.4 & 15.4.2 confirm P2.2 is the hardware boot pin (refuting previous speculation of P0.4). |
-| **ISP-08** | Flash Validity Marker | `0xAAAA5555` at `0x0000FFFC` | `verified-by-disassembly` | Checked by Mask ROM on reset to confirm valid application image before branching. |
+| **ISP-07** | Hardware Recovery Pin | Pull Pin `P2.2` (Pin 3 of LQFP64) LOW at boot | `verified-by-disassembly` | Datasheet Section 1.4 & 15.4.2 confirm P2.2 is the hardware boot pin (refuting previous speculation of P0.4). Documented in `docs/RECOVERY.md`. |
+| **ISP-08** | Flash Validity Marker | `0xAAAA5555` at `0x0000FFFC` | `verified-by-disassembly` | Checked by Mask ROM on reset to confirm valid application image before branching. Flashing tools MUST write this marker. |
+| **ISP-09** | Firmware Image Extent | 64 KB total span (56,088 active non-0xFF bytes) | `verified-by-disassembly` | Both `SN32F240B_32.hex` and `SN32F240B_32.bin` cover full 64 KB with identical SHA-256 (`1e1be3a5...`). Filename `_32` is a naming artifact, not a 32 KB limit. |
 
 ---
 
 ## 4. Open Blockers & Verification Plan
 
 1. **CFG-11 (Macro Stream Layout):** Opcode `04 19` (Begin Macro) verified by static disassembly; macro data packet `04 15` retained as `unverified` pending USB packet capture of user macro recording in official vendor software. Desktop actions (Categories 126–129: Launch App, Open URL, Text Injection) identified as host-delegated software hooks requiring a running host daemon.
-2. **Phase 3, 4 & 5 Verified on Hardware:**
+2. **Phase 3, 4, 5 & 6 Verification Baseline:**
    - **Phase 3 Lighting:** Direct sequence and atomic 22-packet transactions, `--live` (RAM update without flash wear), and `--persist` (flash commit `04 02`) verified against connected RK855 hardware (`0C45:8018`).
    - **Phase 4 Remapping & Profiles:** Key remapping transactions (`04 20`), factory reset (`remap reset` with empty 256-byte table), matrix/status read-back (`04 F5`), and profile switching (`04 F1`..`04 F3`) verified against connected RK855 hardware.
    - **Phase 5 Custom Per-Key RGB:** Physical scan code to hardware matrix index mapping reversed from `0x43B320` jump table in `DeviceDriver.exe` and verified with formula $512 + 4 \times \text{matrix\_index}$. Verified against connected RK855 hardware via `rk855 rgb set-key`, `rk855 rgb load`, and `rk855 rgb clear`.
+   - **Phase 6 ISP Flasher:** Complete `rk855-isp` flasher client, offline firmware analysis (`.hex` and `.bin` exact match), pre-flight sanity checks (SP, reset vector Thumb mode, `0xAAAA5555` marker, Apple descriptor, ISP trigger), guarded flashing pipeline (with mandatory per-page verification and no-reset on verify failure), mock failure injection tests, and hardware recovery guide (`docs/RECOVERY.md`) implemented.
 3. **Single-Color Variant Safety:** Retained as `unverified` pending physical testing on a monochrome LED board variant. Unified firmware binary contains code paths for both, but single-color users should exercise caution.

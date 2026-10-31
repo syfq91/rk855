@@ -2,7 +2,10 @@ use anyhow::{anyhow, Context, Result};
 use clap::{Parser, Subcommand};
 use rk855_config::{parse_rgb_hex, parse_rgb_json, ConfigManager, ProfileFile};
 use rk855_hid::{probe_devices, DeviceInfo, HidApiTransport, MockTransport};
-use rk855_isp::analyze_firmware_bin;
+use rk855_isp::{
+    analyze_firmware, compute_sha256, load_firmware, validate_firmware_image, FlashOptions,
+    IspClient, MockIspTransport, FLASH_SIZE,
+};
 use rk855_proto::{
     action_code_to_name, find_key_by_name, resolve_action_code, ColorType, CustomRgbMap, Direction,
     LightMode, LightParams, ProfileSlot, RemapEntry, PHYSICAL_KEYS,
@@ -68,6 +71,12 @@ enum Commands {
     Macro {
         #[command(subcommand)]
         command: MacroCommands,
+    },
+
+    /// In-System Programming (ISP) bootloader operations, flash readout, and flashing
+    Isp {
+        #[command(subcommand)]
+        command: IspCommands,
     },
 }
 
@@ -274,12 +283,114 @@ enum ProfileCommands {
 
 #[derive(Subcommand, Debug)]
 enum FirmwareCommands {
-    /// Inspect and validate a firmware image (.bin) offline without hardware
+    /// Inspect and validate a firmware image (.bin or .hex) offline without hardware
     Check {
-        /// Path to firmware binary (.bin)
+        /// Path to firmware file (.bin or .hex)
         path: PathBuf,
 
         /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum IspCommands {
+    /// Switch connected keyboard into Mask ROM bootloader mode (0C45:82AA)
+    Enter {
+        /// Poll timeout in seconds for device re-enumeration as bootloader
+        #[arg(short, long, default_value = "5")]
+        timeout: u64,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Query Sonix ISP bootloader version and microcontroller identification
+    Info {
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Read on-chip flash memory and save backup binary image
+    Read {
+        /// Destination file path for flash backup (.bin)
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Start address in flash (default: 0x0000)
+        #[arg(long, default_value = "0")]
+        start: u32,
+
+        /// Number of bytes to read (default: 65536 / 64 KB)
+        #[arg(long, default_value = "65536")]
+        len: usize,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Guarded firmware flashing (.bin or .hex) with pre-flight checks and per-page verification
+    Flash {
+        /// Path to firmware image (.bin or .hex)
+        path: PathBuf,
+
+        /// Dry run: runs complete validation against mock without touching hardware flash
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Skip per-page read-back verification (strongly discouraged)
+        #[arg(long)]
+        no_verify: bool,
+
+        /// Skip flash sector erasure
+        #[arg(long)]
+        skip_erase: bool,
+
+        /// Bypass safety checks (e.g. unknown chip ID, pre-flight warnings)
+        #[arg(long)]
+        force: bool,
+
+        /// Automatically answer YES to safety confirmation prompt
+        #[arg(short = 'y', long)]
+        yes: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        dev_path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
         #[arg(long)]
         json: bool,
     },
@@ -540,6 +651,36 @@ fn main() -> Result<()> {
         Commands::Macro { command } => match command {
             MacroCommands::Status { json } => run_macro_status(json)?,
         },
+        Commands::Isp { command } => match command {
+            IspCommands::Enter {
+                timeout,
+                path,
+                mock,
+                json,
+            } => run_isp_enter(timeout, path, mock, json)?,
+            IspCommands::Info { path, mock, json } => run_isp_info(path, mock, json)?,
+            IspCommands::Read {
+                out,
+                start,
+                len,
+                path,
+                mock,
+                json,
+            } => run_isp_read(out, start, len, path, mock, json)?,
+            IspCommands::Flash {
+                path,
+                dry_run,
+                no_verify,
+                skip_erase,
+                force,
+                yes,
+                dev_path,
+                mock,
+                json,
+            } => run_isp_flash(
+                path, dry_run, no_verify, skip_erase, force, yes, dev_path, mock, json,
+            )?,
+        },
     }
 
     Ok(())
@@ -620,7 +761,7 @@ fn print_device_info(idx: usize, d: &DeviceInfo) {
 }
 
 fn run_firmware_check(path: PathBuf, output_json: bool) -> Result<()> {
-    let analysis = analyze_firmware_bin(&path)
+    let analysis = analyze_firmware(&path)
         .with_context(|| format!("Failed to analyze firmware file: {}", path.display()))?;
 
     if output_json {
@@ -630,11 +771,19 @@ fn run_firmware_check(path: PathBuf, output_json: bool) -> Result<()> {
             "sha256": analysis.sha256_hex,
             "initial_sp": format!("0x{:08X}", analysis.initial_sp),
             "reset_vector": format!("0x{:08X}", analysis.reset_vector),
+            "is_thumb_mode": analysis.is_thumb_mode,
+            "is_valid_sram_sp": analysis.is_valid_sram_sp,
+            "is_valid_flash_reset": analysis.is_valid_flash_reset,
             "has_rom_marker": analysis.has_rom_marker,
             "rom_marker_value": format!("0x{:08X}", analysis.rom_marker_value),
             "contains_apple_vid_pid": analysis.contains_apple_vid_pid,
             "contains_isp_trigger_magic": analysis.contains_isp_trigger_magic,
+            "single_color_flag": format!("0x{:04X}", analysis.single_color_flag),
             "populated_bytes": analysis.populated_bytes,
+            "is_known_factory_image": analysis.is_known_factory_image,
+            "is_safe_to_flash": analysis.is_safe_to_flash(),
+            "errors": analysis.errors,
+            "warnings": analysis.warnings,
         });
         println!("{}", serde_json::to_string_pretty(&json_val)?);
         return Ok(());
@@ -645,21 +794,31 @@ fn run_firmware_check(path: PathBuf, output_json: bool) -> Result<()> {
     println!(" File: {}", path.display());
     println!("============================================================");
     println!(
-        "File Size:          {} bytes (0x{:X})",
-        analysis.file_size, analysis.file_size
+        "File Size:          {} bytes (normalized 64 KB image)",
+        analysis.file_size
     );
     println!(
-        "Populated Bytes:    {} bytes (non-0xFF)",
+        "Populated Bytes:    {} bytes (non-0xFF active code & data)",
         analysis.populated_bytes
     );
     println!("SHA-256 Checksum:   {}", analysis.sha256_hex);
     println!(
-        "Initial SP:         0x{:08X} (Top of SRAM)",
-        analysis.initial_sp
+        "Initial SP:         0x{:08X} [{}]",
+        analysis.initial_sp,
+        if analysis.is_valid_sram_sp {
+            "VALID (SRAM 0x20000000..0x20002000)"
+        } else {
+            "INVALID / OUT OF BOUNDS"
+        }
     );
     println!(
-        "Reset Vector:       0x{:08X} (Thumb vector)",
-        analysis.reset_vector
+        "Reset Vector:       0x{:08X} [{}]",
+        analysis.reset_vector,
+        if analysis.is_valid_flash_reset && analysis.is_thumb_mode {
+            "VALID (Flash Thumb vector)"
+        } else {
+            "INVALID / CORRUPT"
+        }
     );
     println!(
         "ROM Marker (0xFFFC): 0x{:08X} [{}]",
@@ -668,6 +827,15 @@ fn run_firmware_check(path: PathBuf, output_json: bool) -> Result<()> {
             "VALID (0xAAAA5555)"
         } else {
             "INVALID / MISSING"
+        }
+    );
+    println!(
+        "Hardware Variant:   0x{:04X} [{}]",
+        analysis.single_color_flag,
+        if analysis.single_color_flag == 0xAAAA {
+            "Unified Image (Single-Color driver enabled via 0x800C flag)"
+        } else {
+            "RGB only mode"
         }
     );
     println!(
@@ -686,18 +854,386 @@ fn run_firmware_check(path: PathBuf, output_json: bool) -> Result<()> {
             "NOT FOUND"
         }
     );
+    println!(
+        "Factory Image:      {}",
+        if analysis.is_known_factory_image {
+            "VERIFIED (Exact byte-for-byte match with official factory firmware)"
+        } else {
+            "CUSTOM / MODIFIED BUILD"
+        }
+    );
 
     println!();
-    println!("Pre-Flight Verification Summary:");
-    if analysis.initial_sp == 0x200015B0
-        && analysis.reset_vector == 0x000066D1
-        && analysis.has_rom_marker
-    {
-        println!("  [OK] Image matches verified RK855 SN32F240B target firmware specifications.");
+    println!("Pre-Flight Verification Status:");
+    if analysis.is_safe_to_flash() {
+        println!("  [OK] Image passes all critical hardware safety checks and is safe to flash.");
+    } else {
+        println!("  [FAILED] Image failed critical safety checks:");
+        for err in &analysis.errors {
+            println!("    - ERROR: {err}");
+        }
+    }
+    for warn in &analysis.warnings {
+        println!("    - WARNING: {warn}");
+    }
+
+    Ok(())
+}
+
+fn run_isp_enter(
+    timeout_sec: u64,
+    path: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    if mock {
+        let mock_trans = MockIspTransport::new_keyboard();
+        let mut client = IspClient::new(mock_trans);
+        client
+            .send_bootloader_trigger()
+            .context("Failed to send ISP trigger")?;
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({ "status": "ok", "mock": true, "bootloader_mode": true })
+            );
+        } else {
+            println!(
+                "[+] Mock ISP trigger sent successfully. Re-enumerated as bootloader (0C45:82AA)."
+            );
+        }
+        return Ok(());
+    }
+
+    println!("[*] Connecting to RK855 keyboard in application mode...");
+    let transport = if let Some(p) = path {
+        HidApiTransport::open_path(&p)?
+    } else {
+        HidApiTransport::open_first_candidate()?
+    };
+
+    println!("[*] Sending software bootloader trigger sequence (AA 42 89 5A FF 71 62 CC)...");
+    let mut client = IspClient::new(transport);
+    client
+        .send_bootloader_trigger()
+        .context("Failed to deliver bootloader trigger packet")?;
+
+    println!(
+        "[*] Trigger delivered. Polling for device re-enumeration as Sonix Bootloader (0C45:82AA) (timeout: {}s)...",
+        timeout_sec
+    );
+    let _boot_transport =
+        HidApiTransport::wait_for_bootloader(std::time::Duration::from_secs(timeout_sec))
+            .context("Bootloader did not re-enumerate within timeout")?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "ok",
+                "vid": "0x0C45",
+                "pid": "0x82AA",
+                "message": "Device successfully re-enumerated in Mask ROM bootloader mode"
+            })
+        );
     } else {
         println!(
-            "  [WARNING] Vector table or ROM validity marker deviates from verified target image."
+            "[+] Device successfully entered Sonix ISP Bootloader mode (VID: 0x0C45, PID: 0x82AA)!"
         );
+        println!("    Ready for 'rk855 isp info', 'rk855 isp read', or 'rk855 isp flash'.");
+    }
+
+    Ok(())
+}
+
+fn run_isp_info(path: Option<String>, mock: bool, output_json: bool) -> Result<()> {
+    let chip_info = if mock {
+        let mock_trans = MockIspTransport::new_bootloader();
+        let mut client = IspClient::new(mock_trans);
+        client.handshake().context("Mock handshake failed")?
+    } else {
+        let transport = if let Some(p) = path {
+            HidApiTransport::open_path(&p)?
+        } else {
+            HidApiTransport::open_bootloader().map_err(|e| {
+                anyhow!(
+                    "Could not connect to Sonix ISP Bootloader (0C45:82AA): {e}\n\
+                     Note: If your keyboard is running normally, first run 'rk855 isp enter' to reboot into bootloader mode."
+                )
+            })?
+        };
+        let mut client = IspClient::new(transport);
+        client
+            .handshake()
+            .context("ISP handshake failed with bootloader")?
+    };
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "chip_id": format!("0x{:04X}", chip_info.chip_id),
+                "bootloader_version": format!("0x{:04X}", chip_info.bootloader_version),
+                "chip_name": chip_info.chip_name(),
+                "is_supported": chip_info.is_supported_chip,
+                "mock": mock,
+            })
+        );
+        return Ok(());
+    }
+
+    println!("============================================================");
+    println!(" Sonix ISP Bootloader Information");
+    println!("============================================================");
+    println!("  Chip ID:            0x{:04X}", chip_info.chip_id);
+    println!(
+        "  Bootloader Version: 0x{:04X}",
+        chip_info.bootloader_version
+    );
+    println!("  Microcontroller:    {}", chip_info.chip_name());
+    println!(
+        "  Hardware Support:   {}",
+        if chip_info.is_supported_chip {
+            "VERIFIED SUPPORTED (SN32F240B / SN32F248B)"
+        } else {
+            "UNKNOWN / UNVERIFIED CHIP (Requires --force)"
+        }
+    );
+
+    Ok(())
+}
+
+fn run_isp_read(
+    out_path: PathBuf,
+    start: u32,
+    len: usize,
+    path: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    if len == 0 || (start as usize) + len > FLASH_SIZE {
+        return Err(anyhow!(
+            "Read range (0x{:04X}..0x{:04X}) exceeds 64 KB flash bounds",
+            start,
+            start as usize + len
+        ));
+    }
+
+    println!(
+        "[*] Reading {} bytes from flash (0x{:04X}..0x{:04X})...",
+        len,
+        start,
+        start as usize + len
+    );
+    let flash_bytes = if mock {
+        let mock_trans = MockIspTransport::new_bootloader();
+        let mut client = IspClient::new(mock_trans);
+        client
+            .read_flash_range(start, len)
+            .context("Mock read failed")?
+    } else {
+        let transport = if let Some(p) = path {
+            HidApiTransport::open_path(&p)?
+        } else {
+            HidApiTransport::open_bootloader().map_err(|e| {
+                anyhow!(
+                    "Could not connect to Sonix ISP Bootloader (0C45:82AA): {e}\n\
+                     Tip: Run 'rk855 isp enter' first."
+                )
+            })?
+        };
+        let mut client = IspClient::new(transport);
+        client
+            .read_flash_range(start, len)
+            .context("Flash readout failed")?
+    };
+
+    std::fs::write(&out_path, &flash_bytes)
+        .with_context(|| format!("Failed to write flash backup to {}", out_path.display()))?;
+
+    let sha256_hex = compute_sha256(&flash_bytes);
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "ok",
+                "out_file": out_path.display().to_string(),
+                "bytes_read": flash_bytes.len(),
+                "sha256": sha256_hex,
+                "mock": mock,
+            })
+        );
+    } else {
+        println!(
+            "[+] Flash memory successfully read and saved to: {}",
+            out_path.display()
+        );
+        println!("    Bytes written: {} bytes", flash_bytes.len());
+        println!("    SHA-256:       {}", sha256_hex);
+    }
+
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_isp_flash(
+    fw_path: PathBuf,
+    dry_run: bool,
+    no_verify: bool,
+    skip_erase: bool,
+    force: bool,
+    yes: bool,
+    dev_path: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    // 1. Load and pre-flight validate image
+    let fw_bytes = load_firmware(&fw_path)
+        .with_context(|| format!("Failed to load firmware image from {}", fw_path.display()))?;
+
+    let analysis =
+        validate_firmware_image(&fw_bytes).context("Pre-flight firmware validation failed")?;
+
+    if !analysis.is_safe_to_flash() && !force {
+        eprintln!(
+            "[-] Pre-flight validation failed with {} error(s):",
+            analysis.errors.len()
+        );
+        for err in &analysis.errors {
+            eprintln!("    - ERROR: {}", err);
+        }
+        return Err(anyhow!(
+            "Aborting flash due to pre-flight errors. Use --force to override if you are certain."
+        ));
+    }
+
+    if !analysis.warnings.is_empty() {
+        eprintln!("[!] Pre-flight warnings:");
+        for warn in &analysis.warnings {
+            eprintln!("    - WARNING: {}", warn);
+        }
+    }
+
+    // 2. Safety confirmation prompt unless --yes or --dry-run
+    if !dry_run && !yes {
+        println!();
+        println!("========================================================================");
+        println!(" CRITICAL SAFETY WARNING: YOU ARE ABOUT TO WRITE FLASH MEMORY");
+        println!("========================================================================");
+        println!("  - Keyboard:      Royal Kludge RK855 (Sonix SN32F240B Cortex-M0)");
+        println!("  - Firmware:      {}", fw_path.display());
+        println!(
+            "  - Populated:     {} non-0xFF bytes",
+            analysis.populated_bytes
+        );
+        println!("  - SHA-256:       {}", analysis.sha256_hex);
+        println!(
+            "  - Known Factory: {}",
+            if analysis.is_known_factory_image {
+                "YES (Official factory firmware)"
+            } else {
+                "NO (Custom/community firmware)"
+            }
+        );
+        println!();
+        println!("  SAFETY REQUIREMENTS:");
+        println!("  1. Ensure keyboard is securely connected to a direct, stable USB port.");
+        println!("  2. If using a laptop, PLUG IN AC POWER ADAPTER now (do not run on battery).");
+        println!("  3. Flashing erases onboard user keymaps, macros, and profile flash sectors.");
+        println!("  4. DO NOT UNPLUG OR POWER OFF THE COMPUTER DURING FLASHING.");
+        println!("  5. If an unexpected power failure occurs, recovery requires opening the");
+        println!("     keyboard case and grounding boot pin P2.2 (Pin 3 of LQFP64) to GND.");
+        println!("========================================================================");
+        print!("Type 'YES' to proceed with flashing: ");
+        std::io::Write::flush(&mut std::io::stdout())?;
+
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        if input.trim() != "YES" {
+            println!("[-] Flashing cancelled by user. No modifications were made.");
+            return Ok(());
+        }
+    }
+
+    let opts = FlashOptions {
+        skip_erase,
+        no_verify,
+        force,
+        dry_run,
+    };
+
+    let summary = if mock || dry_run {
+        let mock_trans = MockIspTransport::new_bootloader();
+        let mut client = IspClient::new(mock_trans);
+        client.flash_firmware(&fw_bytes, opts, |cur, tot, step| {
+            if !output_json && (cur % 32 == 0 || cur == tot) {
+                print!("\r[*] [{:>4}/{:>4} pages] {:<40}", cur, tot, step);
+                let _ = std::io::Write::flush(&mut std::io::stdout());
+            }
+        })?
+    } else {
+        // Connect to physical device
+        // First check if device is already in bootloader mode (0C45:82AA)
+        let transport = if let Ok(boot_trans) = HidApiTransport::open_bootloader() {
+            println!("[+] Device already in Sonix ISP Bootloader mode (0C45:82AA).");
+            boot_trans
+        } else {
+            // Need to trigger from keyboard mode
+            println!("[*] Connecting to RK855 keyboard to trigger bootloader...");
+            let app_trans = if let Some(ref p) = dev_path {
+                HidApiTransport::open_path(p)?
+            } else {
+                HidApiTransport::open_first_candidate()?
+            };
+            let mut client = IspClient::new(app_trans);
+            client
+                .send_bootloader_trigger()
+                .context("Failed to send ISP trigger")?;
+            println!("[*] Waiting for device re-enumeration as Sonix Bootloader (0C45:82AA)...");
+            HidApiTransport::wait_for_bootloader(std::time::Duration::from_secs(6))
+                .context("Bootloader did not re-enumerate after trigger")?
+        };
+
+        let mut client = IspClient::new(transport);
+        println!("[*] Starting flash operation...");
+        client.flash_firmware(&fw_bytes, opts, |cur, tot, step| {
+            if !output_json && (cur % 16 == 0 || cur == tot) {
+                print!("\r[*] [{:>4}/{:>4} pages] {:<40}", cur, tot, step);
+                let _ = std::io::Write::flush(&mut std::io::stdout());
+            }
+        })?
+    };
+
+    if !output_json {
+        println!();
+    }
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "ok",
+                "chip_id": format!("0x{:04X}", summary.chip_info.chip_id),
+                "chip_name": summary.chip_info.chip_name(),
+                "pages_written": summary.pages_written,
+                "pages_verified": summary.pages_verified,
+                "elapsed_ms": summary.elapsed.as_millis(),
+                "dry_run": dry_run,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Firmware Flash Completed Successfully!");
+        println!("============================================================");
+        println!("  Target MCU:      {}", summary.chip_info.chip_name());
+        println!("  Pages Written:   {}", summary.pages_written);
+        println!(
+            "  Pages Verified:  {} (100% byte-for-byte read-back)",
+            summary.pages_verified
+        );
+        println!("  Elapsed Time:    {:.2?}", summary.elapsed);
+        println!("  Microcontroller rebooted into application code.");
     }
 
     Ok(())

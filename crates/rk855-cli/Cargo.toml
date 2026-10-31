@@ -1,0 +1,22 @@
+[package]
+name = "rk855-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI tool for Royal Kludge RK855 (RK68) mechanical keyboard"
+
+[[bin]]
+name = "rk855"
+path = "src/main.rs"
+
+[dependencies]
+rk855-proto.workspace = true
+rk855-hid.workspace = true
+rk855-config.workspace = true
+rk855-isp.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+serde.workspace = true
+serde_json.workspace = true

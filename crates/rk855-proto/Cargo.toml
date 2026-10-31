@@ -1,0 +1,13 @@
+[package]
+name = "rk855-proto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Pure no-IO packet builders, parsers, and constants for Royal Kludge RK855 keyboard"
+
+[dependencies]
+thiserror.workspace = true
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest.workspace = true

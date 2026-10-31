@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rk855-proto",
+    "crates/rk855-hid",
+    "crates/rk855-config",
+    "crates/rk855-isp",
+    "crates/rk855-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Syafiq"]
+license = "MIT"
+
+[workspace.dependencies]
+thiserror = "2"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.5", features = ["derive"] }
+hidapi = "2.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+ihex = "3.0"
+sha2 = "0.10"
+indicatif = "0.17"
+proptest = "1.6"
+
+rk855-proto = { path = "crates/rk855-proto" }
+rk855-hid = { path = "crates/rk855-hid" }
+rk855-config = { path = "crates/rk855-config" }
+rk855-isp = { path = "crates/rk855-isp" }

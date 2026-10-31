@@ -1,0 +1,7 @@
+=== RK855 Capture Decode: test_3.pcap ===
+Total USB Packets Extracted: 1198
+------------------------------------------------------------
+[0001] TS: 1678180104.652664s | IN  (Dev->Host)
+      Raw [2B]: 04 00
+        -> Unknown Subcommand 0x00
+

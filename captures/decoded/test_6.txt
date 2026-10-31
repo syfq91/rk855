@@ -1,0 +1,4 @@
+=== RK855 Capture Decode: test_6.pcap ===
+Total USB Packets Extracted: 160
+------------------------------------------------------------
+No RK855 HID or ISP packets identified in trace.

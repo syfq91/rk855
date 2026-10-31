@@ -1,0 +1,46 @@
+Test 1
+
+Before Recording, do the following:
+
+Open RK Software: Done
+Select the first lighting mode: I choose static mode
+Set brightness to 5 (max): I set brightness to 15
+Set animation to 5 (max): I skipped this, not available in RK software
+Set sleep as No Sleep (max): I skipped this, not available in RK software
+
+t1 1
+
+== Start Recording ==
+
+Tests:
+
+Select explode light mode: Done
+Select sleep at middle (3): I choose 7, as shown in the screenshot
+Select Animation Speed as 2: I skipped this, not available in RK software
+Select Sleep Time as 10 minutes: I skipped this, not available in RK software
+
+t1 2
+Test 2
+
+BEFORE Testing, do the following:
+
+Select "Customize" Light effect mode. : I skipped this, not available in RK software
+Turn off EVERY KEY : I skipped this, not available in RK software, but I choose “close backlight” mode, refer screenshot below
+Set sleep as 30 minutes : I skipped this, not available in RK software
+
+t2 1
+
+== Start Recording ==
+
+Select the custom lighting mode: I skipped this, not available in RK software
+Click on Q Key.: Done
+Click on Esc Key.: Done
+Click on Right Arrow Key.: Done
+Set sleep to 20 minutes: I skipped this, not available in RK software
+Select "Glittering" Light effect mode : Done, refer screenshot below
+
+t2 2
+
+Select "Ripples" Light effect mode: Done, refer screenshot below
+
+t2 3

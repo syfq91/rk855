@@ -1,0 +1,1543 @@
+=== RK855 Capture Decode: test_1.pcap ===
+Total USB Packets Extracted: 8468
+------------------------------------------------------------
+[0001] TS: 1677854158.848191s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0002] TS: 1677854158.851482s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0003] TS: 1677854158.977615s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0004] TS: 1677854158.980727s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0005] TS: 1677854159.104077s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0006] TS: 1677854159.107500s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0007] TS: 1677854159.230574s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0008] TS: 1677854159.233471s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0009] TS: 1677854159.361052s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0010] TS: 1677854159.364549s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0011] TS: 1677854159.477625s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0012] TS: 1677854159.481319s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0013] TS: 1677854159.607131s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0014] TS: 1677854159.611002s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0015] TS: 1677854159.737744s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0016] TS: 1677854159.741843s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0017] TS: 1677854159.871165s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0018] TS: 1677854159.874211s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0019] TS: 1677854159.995277s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0020] TS: 1677854159.998893s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0021] TS: 1677854160.132898s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0022] TS: 1677854160.135823s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0023] TS: 1677854160.262589s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0024] TS: 1677854160.266634s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0025] TS: 1677854160.392305s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0026] TS: 1677854160.395137s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0027] TS: 1677854160.522806s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0028] TS: 1677854160.525863s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0029] TS: 1677854160.658971s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0030] TS: 1677854160.662992s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0031] TS: 1677854160.791904s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0032] TS: 1677854160.794887s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0033] TS: 1677854160.926219s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0034] TS: 1677854160.930563s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0035] TS: 1677854161.064260s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0036] TS: 1677854161.067102s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0037] TS: 1677854161.195291s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0038] TS: 1677854161.198434s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0039] TS: 1677854161.320969s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0040] TS: 1677854161.324580s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0041] TS: 1677854161.453174s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0042] TS: 1677854161.456229s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0043] TS: 1677854161.580802s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0044] TS: 1677854161.584296s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0045] TS: 1677854161.710321s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0046] TS: 1677854161.713030s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0047] TS: 1677854161.841391s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0048] TS: 1677854161.844692s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0049] TS: 1677854161.971274s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0050] TS: 1677854161.974360s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0051] TS: 1677854162.170896s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0052] TS: 1677854162.173860s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0053] TS: 1677854162.311674s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0054] TS: 1677854162.314889s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0055] TS: 1677854162.440477s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0056] TS: 1677854162.443809s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0057] TS: 1677854162.634075s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0058] TS: 1677854162.637210s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0059] TS: 1677854162.820314s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0060] TS: 1677854162.823358s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0061] TS: 1677854163.017126s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0062] TS: 1677854163.021050s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0063] TS: 1677854163.150885s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0064] TS: 1677854163.154400s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0065] TS: 1677854163.280513s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0066] TS: 1677854163.283408s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0067] TS: 1677854163.562642s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0068] TS: 1677854163.565881s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0069] TS: 1677854163.709177s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0070] TS: 1677854163.712066s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0071] TS: 1677854163.903870s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0072] TS: 1677854163.907694s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0073] TS: 1677854164.100356s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0074] TS: 1677854164.103899s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0075] TS: 1677854164.230181s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0076] TS: 1677854164.234241s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0077] TS: 1677854164.360795s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0078] TS: 1677854164.363752s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0079] TS: 1677854164.489761s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0080] TS: 1677854164.492660s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0081] TS: 1677854164.604841s | IN  (Dev->Host)
+      Raw [64B]: 04 18 00 01 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x18: Begin Lighting Configuration
+
+[0082] TS: 1677854164.615136s | IN  (Dev->Host)
+      Raw [64B]: 04 13 00 00 00 00 00 00 12 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x13: Custom Per-Key RGB Header (total_blocks_param=18)
+
+[0083] TS: 1677854164.762279s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 01 d8 85 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0084] TS: 1677854164.773209s | IN  (Dev->Host)
+      Raw [64B]: 04 f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0xF0: PWM Reload (Apply Lighting changes immediately)
+
+[0085] TS: 1677854164.902684s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0086] TS: 1677854164.905796s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0087] TS: 1677854165.006349s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0088] TS: 1677854165.009344s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0089] TS: 1677854165.107020s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0090] TS: 1677854165.109964s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0091] TS: 1677854165.210331s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0092] TS: 1677854165.213367s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0093] TS: 1677854165.316263s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0094] TS: 1677854165.319413s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0095] TS: 1677854165.427194s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0096] TS: 1677854165.430193s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0097] TS: 1677854165.534711s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0098] TS: 1677854165.537676s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0099] TS: 1677854165.635300s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0100] TS: 1677854165.638345s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0101] TS: 1677854165.737417s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0102] TS: 1677854165.740862s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0103] TS: 1677854165.841419s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0104] TS: 1677854165.844796s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0105] TS: 1677854166.061673s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0106] TS: 1677854166.064594s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0107] TS: 1677854166.171586s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0108] TS: 1677854166.174607s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0109] TS: 1677854166.282395s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0110] TS: 1677854166.285352s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0111] TS: 1677854166.383645s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0112] TS: 1677854166.387264s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0113] TS: 1677854166.488637s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0114] TS: 1677854166.491671s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0115] TS: 1677854166.601256s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0116] TS: 1677854166.604660s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0117] TS: 1677854166.714114s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0118] TS: 1677854166.717526s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0119] TS: 1677854166.817760s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0120] TS: 1677854166.821602s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0121] TS: 1677854166.926307s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0122] TS: 1677854166.929356s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0123] TS: 1677854167.029068s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0124] TS: 1677854167.032036s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0125] TS: 1677854167.148693s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0126] TS: 1677854167.151396s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0127] TS: 1677854167.253212s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0128] TS: 1677854167.256386s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0129] TS: 1677854167.360121s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0130] TS: 1677854167.363068s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0131] TS: 1677854167.471064s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0132] TS: 1677854167.474169s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0133] TS: 1677854167.577614s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0134] TS: 1677854167.580634s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0135] TS: 1677854167.683749s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0136] TS: 1677854167.686743s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0137] TS: 1677854167.800544s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0138] TS: 1677854167.803475s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0139] TS: 1677854167.904076s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0140] TS: 1677854167.907627s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0141] TS: 1677854168.018282s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0142] TS: 1677854168.022040s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0143] TS: 1677854168.130212s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0144] TS: 1677854168.133195s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0145] TS: 1677854168.241468s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0146] TS: 1677854168.244459s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0147] TS: 1677854168.347762s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0148] TS: 1677854168.350867s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0149] TS: 1677854168.450860s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0150] TS: 1677854168.454227s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0151] TS: 1677854168.558026s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0152] TS: 1677854168.561461s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0153] TS: 1677854168.667062s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0154] TS: 1677854168.670301s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0155] TS: 1677854168.772972s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0156] TS: 1677854168.776021s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0157] TS: 1677854168.878073s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0158] TS: 1677854168.881186s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0159] TS: 1677854168.984048s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0160] TS: 1677854168.987006s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0161] TS: 1677854169.086338s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0162] TS: 1677854169.089496s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0163] TS: 1677854169.189483s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0164] TS: 1677854169.192613s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0165] TS: 1677854169.297036s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0166] TS: 1677854169.299769s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0167] TS: 1677854169.406706s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0168] TS: 1677854169.409432s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0169] TS: 1677854169.505060s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0170] TS: 1677854169.508025s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0171] TS: 1677854169.606180s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0172] TS: 1677854169.609808s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0173] TS: 1677854169.709364s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0174] TS: 1677854169.712713s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0175] TS: 1677854169.814117s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0176] TS: 1677854169.817048s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0177] TS: 1677854169.926957s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0178] TS: 1677854169.929899s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0179] TS: 1677854170.035110s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0180] TS: 1677854170.038149s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0181] TS: 1677854170.138365s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0182] TS: 1677854170.141325s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0183] TS: 1677854170.243408s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0184] TS: 1677854170.246471s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0185] TS: 1677854170.348977s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0186] TS: 1677854170.351795s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0187] TS: 1677854170.451922s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0188] TS: 1677854170.454862s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0189] TS: 1677854170.547634s | IN  (Dev->Host)
+      Raw [64B]: 04 f5 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> Unknown Subcommand 0xF5
+
+[0190] TS: 1677854170.639649s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0191] TS: 1677854170.642611s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0192] TS: 1677854170.740982s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0193] TS: 1677854170.744311s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0194] TS: 1677854170.843417s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0195] TS: 1677854170.846447s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0196] TS: 1677854170.948653s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0197] TS: 1677854170.951734s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0198] TS: 1677854171.053011s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0199] TS: 1677854171.057032s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0200] TS: 1677854171.160021s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0201] TS: 1677854171.163910s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0202] TS: 1677854171.273837s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0203] TS: 1677854171.276807s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0204] TS: 1677854171.378432s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0205] TS: 1677854171.381441s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0206] TS: 1677854171.480660s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0207] TS: 1677854171.483541s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0208] TS: 1677854171.585107s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0209] TS: 1677854171.588342s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0210] TS: 1677854171.687163s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0211] TS: 1677854171.690702s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0212] TS: 1677854171.790644s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0213] TS: 1677854171.794916s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0214] TS: 1677854171.891648s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0215] TS: 1677854171.894900s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0216] TS: 1677854171.998635s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0217] TS: 1677854172.001792s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0218] TS: 1677854172.110247s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0219] TS: 1677854172.113398s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0220] TS: 1677854172.129810s | IN  (Dev->Host)
+      Raw [64B]: 04 18 00 01 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x18: Begin Lighting Configuration
+
+[0221] TS: 1677854172.140408s | IN  (Dev->Host)
+      Raw [64B]: 04 13 00 00 00 00 00 00 12 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x13: Custom Per-Key RGB Header (total_blocks_param=18)
+
+[0222] TS: 1677854172.287632s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 01 c8 85 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0223] TS: 1677854172.298187s | IN  (Dev->Host)
+      Raw [64B]: 04 f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0xF0: PWM Reload (Apply Lighting changes immediately)
+
+[0224] TS: 1677854172.400521s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0225] TS: 1677854172.403544s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0226] TS: 1677854172.502204s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0227] TS: 1677854172.505858s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0228] TS: 1677854172.605918s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0229] TS: 1677854172.609105s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0230] TS: 1677854172.720933s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0231] TS: 1677854172.723815s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0232] TS: 1677854172.827413s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0233] TS: 1677854172.830318s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0234] TS: 1677854172.930193s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0235] TS: 1677854172.933583s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0236] TS: 1677854173.032190s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0237] TS: 1677854173.035014s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0238] TS: 1677854173.135580s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0239] TS: 1677854173.138628s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0240] TS: 1677854173.238595s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0241] TS: 1677854173.241224s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0242] TS: 1677854173.342533s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0243] TS: 1677854173.345480s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0244] TS: 1677854173.445970s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0245] TS: 1677854173.448888s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0246] TS: 1677854173.547724s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0247] TS: 1677854173.550708s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0248] TS: 1677854173.654194s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0249] TS: 1677854173.656972s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0250] TS: 1677854173.760215s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0251] TS: 1677854173.763956s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0252] TS: 1677854173.865109s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0253] TS: 1677854173.868067s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0254] TS: 1677854173.970352s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0255] TS: 1677854173.973270s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0256] TS: 1677854174.072581s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0257] TS: 1677854174.075596s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0258] TS: 1677854174.176514s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0259] TS: 1677854174.179498s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0260] TS: 1677854174.331778s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0261] TS: 1677854174.335735s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0262] TS: 1677854174.443932s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0263] TS: 1677854174.447000s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0264] TS: 1677854174.555176s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0265] TS: 1677854174.558279s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0266] TS: 1677854174.656733s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0267] TS: 1677854174.659798s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0268] TS: 1677854174.760564s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0269] TS: 1677854174.763637s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0270] TS: 1677854174.869742s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0271] TS: 1677854174.873573s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0272] TS: 1677854174.972782s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0273] TS: 1677854174.975780s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0274] TS: 1677854175.084661s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0275] TS: 1677854175.088165s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0276] TS: 1677854175.188066s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0277] TS: 1677854175.190990s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0278] TS: 1677854175.292319s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0279] TS: 1677854175.295937s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0280] TS: 1677854175.395344s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0281] TS: 1677854175.398357s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0282] TS: 1677854175.494839s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0283] TS: 1677854175.497674s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0284] TS: 1677854175.597525s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0285] TS: 1677854175.600509s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0286] TS: 1677854175.701296s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0287] TS: 1677854175.704192s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0288] TS: 1677854175.804487s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0289] TS: 1677854175.807342s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0290] TS: 1677854175.909865s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0291] TS: 1677854175.913051s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0292] TS: 1677854176.017561s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0293] TS: 1677854176.020658s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0294] TS: 1677854176.117655s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0295] TS: 1677854176.120629s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0296] TS: 1677854176.218287s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0297] TS: 1677854176.221278s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0298] TS: 1677854176.320624s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0299] TS: 1677854176.323413s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0300] TS: 1677854176.426004s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0301] TS: 1677854176.429148s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0302] TS: 1677854176.526283s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0303] TS: 1677854176.529326s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0304] TS: 1677854176.629927s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0305] TS: 1677854176.633138s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0306] TS: 1677854176.732588s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0307] TS: 1677854176.735511s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0308] TS: 1677854176.834389s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0309] TS: 1677854176.837310s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0310] TS: 1677854176.939264s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0311] TS: 1677854176.942169s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0312] TS: 1677854177.042537s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0313] TS: 1677854177.045520s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0314] TS: 1677854177.148241s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0315] TS: 1677854177.151655s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0316] TS: 1677854177.260838s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0317] TS: 1677854177.263765s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0318] TS: 1677854177.369541s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0319] TS: 1677854177.372581s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0320] TS: 1677854177.467730s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0321] TS: 1677854177.470738s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0322] TS: 1677854177.572877s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0323] TS: 1677854177.576171s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0324] TS: 1677854177.673177s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0325] TS: 1677854177.676199s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0326] TS: 1677854177.779172s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0327] TS: 1677854177.782085s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0328] TS: 1677854177.884518s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0329] TS: 1677854177.887750s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0330] TS: 1677854177.991335s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0331] TS: 1677854177.995092s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0332] TS: 1677854178.098163s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0333] TS: 1677854178.100950s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0334] TS: 1677854178.209916s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0335] TS: 1677854178.212833s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0336] TS: 1677854178.314758s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0337] TS: 1677854178.317741s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0338] TS: 1677854178.418727s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0339] TS: 1677854178.421771s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0340] TS: 1677854178.523304s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0341] TS: 1677854178.527148s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0342] TS: 1677854178.628443s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0343] TS: 1677854178.631594s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0344] TS: 1677854178.735039s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0345] TS: 1677854178.737833s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0346] TS: 1677854178.839940s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0347] TS: 1677854178.842886s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0348] TS: 1677854178.944280s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0349] TS: 1677854178.947203s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0350] TS: 1677854179.048553s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0351] TS: 1677854179.051542s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0352] TS: 1677854179.155595s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0353] TS: 1677854179.158497s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0354] TS: 1677854179.447043s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0355] TS: 1677854179.463633s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0356] TS: 1677854179.894936s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0357] TS: 1677854179.910592s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0358] TS: 1677854180.337083s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0359] TS: 1677854180.353062s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0360] TS: 1677854180.786777s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0361] TS: 1677854180.802303s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0362] TS: 1677854181.187573s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0363] TS: 1677854181.198911s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0364] TS: 1677854181.600504s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0365] TS: 1677854181.616058s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0366] TS: 1677854182.050637s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0367] TS: 1677854182.072166s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0368] TS: 1677854182.568362s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0369] TS: 1677854182.584987s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0370] TS: 1677854183.048602s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0371] TS: 1677854183.068393s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0372] TS: 1677854183.422550s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0373] TS: 1677854183.438427s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0374] TS: 1677854183.881398s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0375] TS: 1677854183.901767s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0376] TS: 1677854184.348033s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0377] TS: 1677854184.365079s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0378] TS: 1677854184.772738s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0379] TS: 1677854184.789672s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0380] TS: 1677854185.164838s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0381] TS: 1677854185.181459s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0382] TS: 1677854185.611657s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0383] TS: 1677854185.631514s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0384] TS: 1677854186.058525s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+
+[0385] TS: 1677854186.074157s | IN  (Dev->Host)
+      Raw [64B]: 04 02 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 ... (64 bytes total)
+        -> CMD 0x02: Commit Configuration to Flash Memory
+

@@ -1,0 +1,15 @@
+[package]
+name = "rk855-hid"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "HID transport abstraction (HidTransport trait, hidapi impl, mock impl) for RK855"
+
+[dependencies]
+rk855-proto.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+hidapi.workspace = true
+serde.workspace = true
+
+[dev-dependencies]

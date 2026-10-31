@@ -1,0 +1,43 @@
+Test 3
+Before recording
+
+    Open RK Software
+
+Start Recording
+Steps
+
+    Exit the RK Software
+
+Stop Recording
+Test 4
+Before recording
+
+Do nothing
+Start Recording
+Steps
+
+    Start RK Software
+    Exit the RK Software
+
+Stop Recording
+Test 5
+Before recording
+
+    Start RK Software
+
+Start Recording
+Steps
+
+Do nothing
+Stop Recording
+Test 6
+Before recording
+
+    Start RK Software
+    Exit RK Software
+
+Start Recording
+Steps
+
+Do nothing
+Stop Recording

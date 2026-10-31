@@ -3,6 +3,7 @@
 use rk855_hid::{HidTransport, HidTransportError};
 use rk855_proto::*;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -12,23 +13,56 @@ pub enum ConfigError {
 
     #[error("Serialization error: {0}")]
     Serialization(String),
+
+    #[error("Invalid profile format: {0}")]
+    InvalidProfile(String),
+
+    #[error("Key resolution error: {0}")]
+    KeyResolution(String),
 }
 
-/// Profile representation serializable to TOML
+/// Profile representation serializable to human-readable TOML files.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Profile {
+pub struct ProfileFile {
     pub name: String,
     pub version: u32,
-    pub lighting: Option<LightingConfig>,
+    pub slot: Option<u8>,
+    pub lighting: Option<ProfileLighting>,
+    #[serde(default)]
+    pub remaps: BTreeMap<String, String>,
+}
+
+impl Default for ProfileFile {
+    fn default() -> Self {
+        Self {
+            name: "Default RK855 Profile".to_string(),
+            version: 1,
+            slot: Some(1),
+            lighting: Some(ProfileLighting::default()),
+            remaps: BTreeMap::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct LightingConfig {
-    pub mode: u8,
+pub struct ProfileLighting {
+    pub mode: String,
+    pub color: String,
     pub brightness: u8,
     pub speed: u8,
-    pub direction: u8,
-    pub color_rgb: [u8; 3],
+    pub direction: String,
+}
+
+impl Default for ProfileLighting {
+    fn default() -> Self {
+        Self {
+            mode: "breathing".to_string(),
+            color: "#FF00FF".to_string(),
+            brightness: 3,
+            speed: 2,
+            direction: "ltr".to_string(),
+        }
+    }
 }
 
 /// Configuration manager that operates via any `HidTransport`.
@@ -92,6 +126,111 @@ impl<T: HidTransport> ConfigManager<T> {
         self.transport.set_feature(&build_pwm_reload())?;
         Ok(())
     }
+
+    /// Applies key remapping table transaction (7 packets: begin, 4 blocks table, commit, reload).
+    ///
+    /// If `persist` is false (`--live`), the `04 02` commit packet is omitted.
+    pub fn apply_remap(
+        &mut self,
+        entries: &[RemapEntry],
+        persist: bool,
+    ) -> Result<(), ConfigError> {
+        let pkts = build_remap_transaction(entries);
+        for (idx, pkt) in pkts.into_iter().enumerate() {
+            // Packet 6 (index 5) is 04 02 Commit Flash
+            if !persist && idx == 5 && pkt[0] == CMD_OPCODE_HEADER && pkt[1] == SUBCMD_COMMIT {
+                tracing::debug!("Live mode: omitting remap commit packet (04 02)");
+                continue;
+            }
+            self.transport.set_feature(&pkt)?;
+        }
+        Ok(())
+    }
+
+    /// Resets all key remappings to factory defaults (sends empty 256-byte table).
+    pub fn reset_remap(&mut self, persist: bool) -> Result<(), ConfigError> {
+        self.apply_remap(&[], persist)
+    }
+
+    /// Switches the active onboard profile (Profile 1, 2, or 3).
+    pub fn switch_profile(&mut self, slot: ProfileSlot) -> Result<(), ConfigError> {
+        self.transport.set_feature(&build_switch_profile(slot))?;
+        self.transport.set_feature(&build_pwm_reload())?;
+        Ok(())
+    }
+
+    /// Queries the keyboard MCU status / matrix readout (`04 F5`).
+    pub fn query_status_matrix(&mut self) -> Result<Vec<u8>, ConfigError> {
+        let mut full_data = Vec::new();
+
+        // Initial query: 04 F5 01
+        self.transport.set_feature(&build_read_back_request(1))?;
+        let chunk1 = self
+            .transport
+            .get_feature(FEATURE_REPORT_ID, PAYLOAD_SIZE)?;
+        full_data.extend_from_slice(&chunk1);
+
+        // Follow-up queries: 3x 04 F5 00
+        for _ in 0..3 {
+            self.transport.set_feature(&build_read_back_request(0))?;
+            let chunk = self
+                .transport
+                .get_feature(FEATURE_REPORT_ID, PAYLOAD_SIZE)?;
+            full_data.extend_from_slice(&chunk);
+        }
+
+        Ok(full_data)
+    }
+
+    /// Exports a ProfileFile to a TOML formatted string.
+    pub fn export_profile_toml(&self, profile: &ProfileFile) -> Result<String, ConfigError> {
+        toml::to_string_pretty(profile).map_err(|e| ConfigError::Serialization(e.to_string()))
+    }
+
+    /// Imports a ProfileFile from a TOML formatted string and optionally stages it to hardware.
+    pub fn import_profile_toml(
+        &mut self,
+        toml_str: &str,
+        apply_to_device: bool,
+        persist: bool,
+    ) -> Result<ProfileFile, ConfigError> {
+        let profile: ProfileFile =
+            toml::from_str(toml_str).map_err(|e| ConfigError::InvalidProfile(e.to_string()))?;
+
+        if profile.version != 1 {
+            return Err(ConfigError::InvalidProfile(format!(
+                "Unsupported profile schema version: {}. Only version 1 is supported.",
+                profile.version
+            )));
+        }
+
+        if apply_to_device {
+            // Apply profile slot if specified
+            if let Some(slot_num) = profile.slot {
+                if let Some(slot) = ProfileSlot::from_u8(slot_num) {
+                    self.switch_profile(slot)?;
+                }
+            }
+
+            // Apply remaps
+            let mut entries = Vec::new();
+            for (key_name, target_name) in &profile.remaps {
+                let phys_key = find_key_by_name(key_name).ok_or_else(|| {
+                    ConfigError::KeyResolution(format!("Unknown physical key: '{}'", key_name))
+                })?;
+                let target_code = resolve_action_code(target_name).ok_or_else(|| {
+                    ConfigError::KeyResolution(format!(
+                        "Unknown target action / key: '{}'",
+                        target_name
+                    ))
+                })?;
+                entries.push(RemapEntry::new(phys_key.scancode, target_code));
+            }
+            self.apply_remap(&entries, persist)?;
+        }
+
+        Ok(profile)
+    }
 }
 
 #[cfg(test)]
@@ -150,5 +289,83 @@ mod tests {
             .expect("Failed direct live");
         assert_eq!(mgr_live.transport.sent_packets.len(), 3);
         assert_eq!(mgr_live.transport.sent_packets[2][1], 0xF0);
+    }
+
+    #[test]
+    fn test_apply_remap_persist() {
+        let mock = MockTransport::new();
+        let mut mgr = ConfigManager::new(mock);
+        let remaps = [RemapEntry::new(0x39, 0x29)]; // Caps -> Esc
+
+        mgr.apply_remap(&remaps, true).expect("Failed remap");
+        assert_eq!(mgr.transport.sent_packets.len(), 7);
+        assert_eq!(mgr.transport.sent_packets[0][0], 0x04);
+        assert_eq!(mgr.transport.sent_packets[0][1], 0x20); // Begin remap
+        assert_eq!(mgr.transport.sent_packets[0][8], 0x04); // 4 blocks
+        assert_eq!(mgr.transport.sent_packets[1][0], 0x39); // Phys: Caps
+        assert_eq!(mgr.transport.sent_packets[1][1], 0x29); // Target: Esc
+        assert_eq!(mgr.transport.sent_packets[5][1], 0x02); // Commit
+        assert_eq!(mgr.transport.sent_packets[6][1], 0xF0); // Reload
+    }
+
+    #[test]
+    fn test_reset_remap() {
+        let mock = MockTransport::new();
+        let mut mgr = ConfigManager::new(mock);
+
+        mgr.reset_remap(true).expect("Failed reset");
+        assert_eq!(mgr.transport.sent_packets.len(), 7);
+        assert_eq!(mgr.transport.sent_packets[1], vec![0u8; 64]);
+        assert_eq!(mgr.transport.sent_packets[5][1], 0x02);
+    }
+
+    #[test]
+    fn test_switch_profile() {
+        let mock = MockTransport::new();
+        let mut mgr = ConfigManager::new(mock);
+
+        mgr.switch_profile(ProfileSlot::Slot2)
+            .expect("Failed slot2");
+        assert_eq!(mgr.transport.sent_packets.len(), 2);
+        assert_eq!(mgr.transport.sent_packets[0][0], 0x04);
+        assert_eq!(mgr.transport.sent_packets[0][1], 0xF2); // Profile 2
+        assert_eq!(mgr.transport.sent_packets[1][1], 0xF0); // Reload
+    }
+
+    #[test]
+    fn test_profile_toml_roundtrip() {
+        let mock = MockTransport::new();
+        let mut mgr = ConfigManager::new(mock);
+
+        let mut remaps = BTreeMap::new();
+        remaps.insert("capsLock".to_string(), "Escape".to_string());
+        remaps.insert("esc".to_string(), "CapsLock".to_string());
+
+        let profile = ProfileFile {
+            name: "Test Profile".to_string(),
+            version: 1,
+            slot: Some(2),
+            lighting: Some(ProfileLighting {
+                mode: "breathing".to_string(),
+                color: "#FF00FF".to_string(),
+                brightness: 3,
+                speed: 2,
+                direction: "ltr".to_string(),
+            }),
+            remaps,
+        };
+
+        let toml_str = mgr.export_profile_toml(&profile).expect("Failed export");
+        assert!(toml_str.contains("version = 1"));
+        assert!(toml_str.contains("slot = 2"));
+        assert!(toml_str.contains("capsLock"));
+
+        let imported = mgr
+            .import_profile_toml(&toml_str, true, true)
+            .expect("Failed import");
+        assert_eq!(imported.name, "Test Profile");
+        assert_eq!(imported.version, 1);
+        assert_eq!(imported.slot, Some(2));
+        assert_eq!(imported.remaps.len(), 2);
     }
 }

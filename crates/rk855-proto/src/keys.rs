@@ -508,9 +508,76 @@ pub fn find_key_by_index(index: usize) -> Option<&'static PhysicalKey> {
 
 /// Finds a key by name (case-insensitive, e.g. "esc", "CAPS", "Space").
 pub fn find_key_by_name(name: &str) -> Option<&'static PhysicalKey> {
-    PHYSICAL_KEYS
+    let direct = PHYSICAL_KEYS
         .iter()
-        .find(|k| k.name.eq_ignore_ascii_case(name) || k.label.eq_ignore_ascii_case(name))
+        .find(|k| k.name.eq_ignore_ascii_case(name) || k.label.eq_ignore_ascii_case(name));
+    if direct.is_some() {
+        return direct;
+    }
+
+    // Common key name aliases
+    if name.eq_ignore_ascii_case("capslock") || name.eq_ignore_ascii_case("caps_lock") {
+        return Some(&PHYSICAL_KEYS[30]);
+    }
+    if name.eq_ignore_ascii_case("escape") {
+        return Some(&PHYSICAL_KEYS[0]);
+    }
+    if name.eq_ignore_ascii_case("lctrl")
+        || name.eq_ignore_ascii_case("leftctrl")
+        || name.eq_ignore_ascii_case("ctrl")
+    {
+        return Some(&PHYSICAL_KEYS[58]);
+    }
+    if name.eq_ignore_ascii_case("rctrl") || name.eq_ignore_ascii_case("rightctrl") {
+        return Some(&PHYSICAL_KEYS[64]);
+    }
+    if name.eq_ignore_ascii_case("lshift")
+        || name.eq_ignore_ascii_case("leftshift")
+        || name.eq_ignore_ascii_case("shift")
+    {
+        return Some(&PHYSICAL_KEYS[44]);
+    }
+    if name.eq_ignore_ascii_case("rshift") || name.eq_ignore_ascii_case("rightshift") {
+        return Some(&PHYSICAL_KEYS[55]);
+    }
+    if name.eq_ignore_ascii_case("lalt")
+        || name.eq_ignore_ascii_case("leftalt")
+        || name.eq_ignore_ascii_case("alt")
+    {
+        return Some(&PHYSICAL_KEYS[60]);
+    }
+    if name.eq_ignore_ascii_case("ralt") || name.eq_ignore_ascii_case("rightalt") {
+        return Some(&PHYSICAL_KEYS[62]);
+    }
+    if name.eq_ignore_ascii_case("super")
+        || name.eq_ignore_ascii_case("gui")
+        || name.eq_ignore_ascii_case("lwin")
+    {
+        return Some(&PHYSICAL_KEYS[59]);
+    }
+    if name.eq_ignore_ascii_case("bksp") {
+        return Some(&PHYSICAL_KEYS[13]);
+    }
+    if name.eq_ignore_ascii_case("spacebar") {
+        return Some(&PHYSICAL_KEYS[61]);
+    }
+    if name.eq_ignore_ascii_case("delete") {
+        return Some(&PHYSICAL_KEYS[29]);
+    }
+    if name.eq_ignore_ascii_case("pageup") {
+        return Some(&PHYSICAL_KEYS[43]);
+    }
+    if name.eq_ignore_ascii_case("pagedown") {
+        return Some(&PHYSICAL_KEYS[57]);
+    }
+    if name.eq_ignore_ascii_case("up") {
+        return Some(&PHYSICAL_KEYS[56]);
+    }
+    if name.eq_ignore_ascii_case("down") {
+        return Some(&PHYSICAL_KEYS[66]);
+    }
+
+    None
 }
 
 /// Finds a key by scan code.

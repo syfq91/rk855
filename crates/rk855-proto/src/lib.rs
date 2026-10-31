@@ -28,7 +28,8 @@ pub use packet::{
     Packet, ParsedPacket, ProtoError, WireReport,
 };
 pub use remap::{
-    build_begin_remap, decode_remap_table, encode_remap_table, split_remap_table_blocks, RemapEntry,
+    action_code_to_name, build_begin_remap, build_remap_transaction, decode_remap_table,
+    encode_remap_table, resolve_action_code, split_remap_table_blocks, RemapEntry,
 };
 
 #[cfg(test)]

@@ -1,9 +1,12 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use rk855_config::ConfigManager;
+use rk855_config::{ConfigManager, ProfileFile};
 use rk855_hid::{probe_devices, DeviceInfo, HidApiTransport, MockTransport};
 use rk855_isp::analyze_firmware_bin;
-use rk855_proto::{ColorType, Direction, LightMode, LightParams};
+use rk855_proto::{
+    action_code_to_name, find_key_by_name, resolve_action_code, ColorType, Direction, LightMode,
+    LightParams, ProfileSlot, RemapEntry,
+};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -35,6 +38,18 @@ enum Commands {
     Light {
         #[command(subcommand)]
         command: LightCommands,
+    },
+
+    /// Key remapping and physical matrix customizations
+    Remap {
+        #[command(subcommand)]
+        command: RemapCommands,
+    },
+
+    /// Onboard profile switching, export, and import
+    Profile {
+        #[command(subcommand)]
+        command: ProfileCommands,
     },
 
     /// Firmware analysis and pre-flight validation tools
@@ -102,6 +117,150 @@ enum LightCommands {
 }
 
 #[derive(Subcommand, Debug)]
+enum RemapCommands {
+    /// Remap a physical key to a target scancode or action
+    Set {
+        /// Physical key on RK855 (e.g. 'CAPS', 'esc', 'lctrl', 'space')
+        #[arg(short, long)]
+        key: String,
+
+        /// Target key, action, or scancode (e.g. 'ESC', 'caps', 'play', 'mouse_left', 'none')
+        #[arg(short, long)]
+        to: String,
+
+        /// Live test mode: updates in RAM without committing to flash
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash across power cycles (default)
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Dump active key remapping table
+    Dump {
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Query keyboard hardware matrix status via 04 F5
+        #[arg(long)]
+        query: bool,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Reset all key remappings to factory default matrix
+    Reset {
+        /// Live test mode: updates in RAM without committing to flash
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash across power cycles (default)
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum ProfileCommands {
+    /// Export active configuration and remaps to a TOML profile file
+    Export {
+        /// Destination file path (defaults to stdout if omitted)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+
+        /// Profile name
+        #[arg(long, default_value = "Royal Kludge RK855 Profile")]
+        name: String,
+
+        /// Profile slot (1, 2, or 3)
+        #[arg(short, long)]
+        slot: Option<u8>,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Import and apply configuration from a TOML profile file
+    Import {
+        /// Path to profile TOML file
+        #[arg(short, long)]
+        path: PathBuf,
+
+        /// Live test mode: updates in RAM without committing to flash
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash across power cycles (default)
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        device_path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Switch active onboard hardware profile slot (1, 2, or 3)
+    Switch {
+        /// Profile slot number (1, 2, or 3)
+        #[arg(short, long)]
+        slot: u8,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 enum FirmwareCommands {
     /// Inspect and validate a firmware image (.bin) offline without hardware
     Check {
@@ -137,6 +296,52 @@ fn main() -> Result<()> {
                 mode, color, brightness, speed, direction, live, persist, direct, path, mock, json,
             )?,
             LightCommands::ListModes { json } => run_light_list_modes(json)?,
+        },
+        Commands::Remap { command } => match command {
+            RemapCommands::Set {
+                key,
+                to,
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_remap_set(key, to, live, persist, path, mock, json)?,
+            RemapCommands::Dump {
+                path,
+                query,
+                mock,
+                json,
+            } => run_remap_dump(path, query, mock, json)?,
+            RemapCommands::Reset {
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_remap_reset(live, persist, path, mock, json)?,
+        },
+        Commands::Profile { command } => match command {
+            ProfileCommands::Export {
+                output,
+                name,
+                slot,
+                json,
+            } => run_profile_export(output, name, slot, json)?,
+            ProfileCommands::Import {
+                path,
+                live,
+                persist,
+                device_path,
+                mock,
+                json,
+            } => run_profile_import(path, live, persist, device_path, mock, json)?,
+            ProfileCommands::Switch {
+                slot,
+                path,
+                mock,
+                json,
+            } => run_profile_switch(slot, path, mock, json)?,
         },
         Commands::Firmware { command } => match command {
             FirmwareCommands::Check { path, json } => run_firmware_check(path, json)?,
@@ -591,4 +796,557 @@ fn parse_speed(val: u8) -> u8 {
         4 => 10,
         other => other.min(10),
     }
+}
+
+fn get_profile_store_path() -> PathBuf {
+    if let Ok(user_profile) = std::env::var("USERPROFILE") {
+        PathBuf::from(user_profile)
+            .join(".rk855")
+            .join("active_profile.toml")
+    } else if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home)
+            .join(".rk855")
+            .join("active_profile.toml")
+    } else {
+        PathBuf::from("active_profile.toml")
+    }
+}
+
+fn load_or_create_active_profile() -> ProfileFile {
+    let path = get_profile_store_path();
+    if path.exists() {
+        if let Ok(content) = std::fs::read_to_string(&path) {
+            if let Ok(profile) = toml::from_str::<ProfileFile>(&content) {
+                return profile;
+            }
+        }
+    }
+    ProfileFile::default()
+}
+
+fn save_active_profile(profile: &ProfileFile) -> Result<()> {
+    let path = get_profile_store_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let content = toml::to_string_pretty(profile)?;
+    std::fs::write(&path, content)?;
+    Ok(())
+}
+
+fn run_remap_set(
+    key_str: String,
+    to_str: String,
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let phys_key = find_key_by_name(&key_str).ok_or_else(|| {
+        anyhow::anyhow!(
+            "Unknown physical key '{}'. Use standard names like 'CAPS', 'ESC', 'LCTRL', 'A', etc.",
+            key_str
+        )
+    })?;
+
+    let target_code = resolve_action_code(&to_str).ok_or_else(|| {
+        anyhow::anyhow!(
+            "Unknown target action or key '{}'. Use key names ('ESC', 'A'), media actions ('play', 'mute'), mouse actions ('mouse_left'), or 'none'.",
+            to_str
+        )
+    })?;
+
+    let should_persist = if live { false } else { persist || !live };
+
+    let mut profile = load_or_create_active_profile();
+    profile
+        .remaps
+        .insert(phys_key.name.to_string(), to_str.clone());
+    let _ = save_active_profile(&profile);
+
+    // Build remap entries from all accumulated active remaps
+    let mut entries = Vec::new();
+    for (k, v) in &profile.remaps {
+        if let Some(pk) = find_key_by_name(k) {
+            if let Some(tc) = resolve_action_code(v) {
+                entries.push(RemapEntry::new(pk.scancode, tc));
+            }
+        }
+    }
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.apply_remap(&entries, should_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "packets_sent": count,
+                    "key": phys_key.name,
+                    "phys_scancode": format!("0x{:02X}", phys_key.scancode),
+                    "to": to_str,
+                    "target_code": format!("0x{:02X}", target_code),
+                    "persisted": should_persist,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: {} packets staged via MockTransport.",
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.apply_remap(&entries, should_persist)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "key": phys_key.name,
+                "phys_scancode": format!("0x{:02X}", phys_key.scancode),
+                "to": to_str,
+                "target_code": format!("0x{:02X}", target_code),
+                "target_name": action_code_to_name(target_code),
+                "persisted": should_persist,
+                "total_active_remaps": entries.len(),
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Royal Kludge RK855 Key Remapped Successfully");
+        println!("============================================================");
+        println!(
+            "  Physical Key:  {} (scancode: 0x{:02X}, row: {})",
+            phys_key.label, phys_key.scancode, phys_key.row
+        );
+        println!(
+            "  Target Action: {} (code: 0x{:02X} / {})",
+            action_code_to_name(target_code),
+            target_code,
+            to_str
+        );
+        println!(
+            "  Storage:       {}",
+            if should_persist {
+                "Committed to Flash (persists across replug)"
+            } else {
+                "RAM only (live preview)"
+            }
+        );
+        println!("  Total Remaps:  {} active mapping(s)", entries.len());
+    }
+
+    Ok(())
+}
+
+fn run_remap_dump(
+    path_opt: Option<String>,
+    query: bool,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let profile = load_or_create_active_profile();
+
+    let mut query_bytes: Option<Vec<u8>> = None;
+    if query && !mock {
+        let transport_res = match path_opt {
+            Some(ref p) => HidApiTransport::open_path(p),
+            None => HidApiTransport::open_first_candidate(),
+        };
+        if let Ok(transport) = transport_res {
+            let mut mgr = ConfigManager::new(transport);
+            if let Ok(data) = mgr.query_status_matrix() {
+                query_bytes = Some(data);
+            }
+        }
+    }
+
+    if output_json {
+        let mut list = Vec::new();
+        for (k, v) in &profile.remaps {
+            let phys = find_key_by_name(k);
+            let target_code = resolve_action_code(v).unwrap_or(0);
+            list.push(serde_json::json!({
+                "key": k,
+                "label": phys.map(|p| p.label).unwrap_or(""),
+                "scancode": phys.map(|p| format!("0x{:02X}", p.scancode)).unwrap_or_default(),
+                "to": v,
+                "target_code": format!("0x{:02X}", target_code),
+                "target_name": action_code_to_name(target_code),
+            }));
+        }
+        println!(
+            "{}",
+            serde_json::json!({
+                "profile_name": profile.name,
+                "version": profile.version,
+                "slot": profile.slot,
+                "remaps": list,
+                "hardware_readback": query_bytes.map(|b| b.iter().map(|byte| format!("{:02X}", byte)).collect::<Vec<_>>().join(" ")),
+            })
+        );
+        return Ok(());
+    }
+
+    println!("===============================================================================");
+    println!(" Royal Kludge RK855 Active Key Remappings");
+    println!("===============================================================================");
+    println!("Profile: {} (Schema v{})", profile.name, profile.version);
+    if let Some(s) = profile.slot {
+        println!("Hardware Slot: Profile {}", s);
+    }
+    println!();
+
+    if profile.remaps.is_empty() {
+        println!("No custom key remaps configured (keyboard using factory default matrix).");
+        println!("Run 'rk855 remap set --key <KEY> --to <TARGET>' to add a remap.");
+    } else {
+        println!(
+            "{:<15} {:<10} {:<18} {:<10}",
+            "Physical Key", "Scancode", "Target Action", "Target Code"
+        );
+        println!("{:-<15} {:-<10} {:-<18} {:-<10}", "", "", "", "");
+        for (k, v) in &profile.remaps {
+            let phys = find_key_by_name(k);
+            let phys_code = phys
+                .map(|p| format!("0x{:02X}", p.scancode))
+                .unwrap_or_else(|| "??".to_string());
+            let target_code = resolve_action_code(v).unwrap_or(0);
+            println!(
+                "{:<15} {:<10} {:<18} 0x{:02X}",
+                phys.map(|p| p.label).unwrap_or(k.as_str()),
+                phys_code,
+                action_code_to_name(target_code),
+                target_code
+            );
+        }
+    }
+
+    if let Some(ref data) = query_bytes {
+        println!();
+        println!(
+            "Hardware Matrix Status Read-Back (04 F5 response, {} bytes):",
+            data.len()
+        );
+        for chunk in data.chunks(16) {
+            let hex_str: Vec<String> = chunk.iter().map(|b| format!("{:02X}", b)).collect();
+            println!("  {}", hex_str.join(" "));
+        }
+    }
+
+    Ok(())
+}
+
+fn run_remap_reset(
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let should_persist = if live { false } else { persist || !live };
+
+    let mut profile = load_or_create_active_profile();
+    let cleared_count = profile.remaps.len();
+    profile.remaps.clear();
+    let _ = save_active_profile(&profile);
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.reset_remap(should_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "packets_sent": count,
+                    "cleared_remaps": cleared_count,
+                    "persisted": should_persist,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: reset table staged via MockTransport ({} packets).",
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.reset_remap(should_persist)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "cleared_remaps": cleared_count,
+                "persisted": should_persist,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Royal Kludge RK855 Remaps Reset Successfully");
+        println!("============================================================");
+        println!("  Cleared {} custom mapping(s).", cleared_count);
+        println!("  Keyboard matrix restored to factory default layout.");
+        println!(
+            "  Storage: {}",
+            if should_persist {
+                "Committed to Flash (persists across replug)"
+            } else {
+                "RAM only"
+            }
+        );
+    }
+
+    Ok(())
+}
+
+fn run_profile_export(
+    output_opt: Option<PathBuf>,
+    name: String,
+    slot_opt: Option<u8>,
+    output_json: bool,
+) -> Result<()> {
+    let mut profile = load_or_create_active_profile();
+    profile.name = name;
+    if let Some(s) = slot_opt {
+        profile.slot = Some(s);
+    }
+
+    let toml_str = toml::to_string_pretty(&profile)?;
+
+    if let Some(dest) = output_opt {
+        std::fs::write(&dest, &toml_str)
+            .with_context(|| format!("Failed to write profile TOML to '{}'", dest.display()))?;
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "saved_to": dest.display().to_string(),
+                    "profile": profile,
+                })
+            );
+        } else {
+            println!("Profile exported successfully to: {}", dest.display());
+        }
+    } else if output_json {
+        println!("{}", serde_json::to_string_pretty(&profile)?);
+    } else {
+        println!("{toml_str}");
+    }
+
+    Ok(())
+}
+
+fn run_profile_import(
+    path: PathBuf,
+    live: bool,
+    persist: bool,
+    device_path: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let content = std::fs::read_to_string(&path)
+        .with_context(|| format!("Failed to read profile file '{}'", path.display()))?;
+
+    let should_persist = if live { false } else { persist || !live };
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        let imported = mgr.import_profile_toml(&content, true, should_persist)?;
+        let sent_count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "packets_sent": sent_count,
+                    "profile": imported,
+                    "persisted": should_persist,
+                })
+            );
+        } else {
+            println!(
+                "Mock import successful: {} packets staged for profile '{}'.",
+                sent_count, imported.name
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match device_path {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    let imported = mgr.import_profile_toml(&content, true, should_persist)?;
+
+    // If lighting configuration was included, also apply it
+    if let Some(ref l) = imported.lighting {
+        if let Some(mode) = LightMode::from_name_or_slug(&l.mode) {
+            let (color_type, r, g, b) =
+                parse_color(&l.color).unwrap_or((ColorType::RgbCustom, 255, 0, 255));
+            let brightness = parse_brightness(l.brightness);
+            let speed = parse_speed(l.speed);
+            let direction =
+                Direction::from_str_name(&l.direction).unwrap_or(Direction::LeftToRight);
+            let params = LightParams {
+                mode,
+                color_type,
+                r,
+                g,
+                b,
+                brightness,
+                speed,
+                direction,
+            };
+            let _ = mgr.apply_lighting(&params, should_persist);
+        }
+    }
+
+    let _ = save_active_profile(&imported);
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "profile": imported,
+                "persisted": should_persist,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Royal Kludge RK855 Profile Imported Successfully");
+        println!("============================================================");
+        println!("  Name:        {}", imported.name);
+        println!("  Version:     {}", imported.version);
+        if let Some(s) = imported.slot {
+            println!("  Slot:        Profile {}", s);
+        }
+        println!(
+            "  Remaps:      {} mapping(s) applied",
+            imported.remaps.len()
+        );
+        if let Some(ref l) = imported.lighting {
+            println!("  Lighting:    mode={}, color={}", l.mode, l.color);
+        }
+        println!(
+            "  Storage:     {}",
+            if should_persist {
+                "Committed to Flash"
+            } else {
+                "RAM only"
+            }
+        );
+    }
+
+    Ok(())
+}
+
+fn run_profile_switch(
+    slot_num: u8,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let slot = ProfileSlot::from_u8(slot_num).ok_or_else(|| {
+        anyhow::anyhow!("Invalid profile slot {}. Expected 1, 2, or 3.", slot_num)
+    })?;
+
+    let mut profile = load_or_create_active_profile();
+    profile.slot = Some(slot_num);
+    let _ = save_active_profile(&profile);
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.switch_profile(slot)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "packets_sent": count,
+                    "slot": slot_num,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: switched to Profile {} via MockTransport ({} packets).",
+                slot_num, count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.switch_profile(slot)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "slot": slot_num,
+                "profile_opcode": format!("0x{:02X}", 0xF0 + slot_num),
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Active Onboard Profile Switched");
+        println!("============================================================");
+        println!(
+            "  Active Slot: Profile {} (opcode: 0x{:02X})",
+            slot_num,
+            0xF0 + slot_num
+        );
+        println!("  Target MCU:  Address remapped to Flash slot offset");
+    }
+
+    Ok(())
 }

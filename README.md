@@ -167,6 +167,25 @@ rk855 isp flash firmware/SN32F240B_32.hex --dry-run
 rk855 isp flash firmware/SN32F240B_32.hex
 ```
 
+### 4.3 Native Desktop GUI (`rk855-gui`)
+
+The workspace includes a native desktop configurator built with [egui](https://github.com/emilk/egui) that communicates exclusively through `rk855-config` and `rk855-isp`:
+
+```bash
+# Launch the desktop GUI in normal hardware mode
+cargo run --release -p rk855-gui
+
+# Launch in offline simulator / mock mode (works without hardware attached)
+cargo run --release -p rk855-gui -- --mock
+```
+
+**Key GUI Features:**
+- **Device Status:** Connection state, VID/PID, active profile selector, and USB interface inspection.
+- **Lighting Presets:** Interactive controls for all 20 built-in lighting effects, brightness/speed sliders, direction toggle, and live color pickers.
+- **Visual Keyboard Layout (68-Key Matrix):** Interactive layout of the physical 65% keyboard for per-key RGB coloring and key remapping. Supports theme JSON import/export.
+- **Hardware Profiles:** Switch between Profiles 1, 2, and 3, or backup/restore profile configurations to TOML/JSON.
+- **Guarded Firmware Flasher:** Behind an explicit "Advanced" safety toggle and warning confirmation gate. Displays pre-flight image validation details, supports dry-run simulation, and requires typing `FLASH` to confirm.
+
 ---
 
 ## 5. Repository Structure
@@ -183,7 +202,8 @@ rk855/
 │   ├── rk855-hid/                 # Transport layer abstraction (hidapi + mock transport)
 │   ├── rk855-config/              # High-level configuration transactions (light, remap, RGB)
 │   ├── rk855-isp/                 # Firmware image validator, parser & Cortex-M0 flasher client
-│   └── rk855-cli/                 # Command-line application (rk855)
+│   ├── rk855-cli/                 # Command-line application (rk855)
+│   └── rk855-gui/                 # Native desktop GUI configurator & flasher (egui)
 ├── docs/                          # Detailed reverse-engineering technical reports
 │   ├── README.md                  # Documentation index & reading guide
 │   ├── PROTOCOL_STATUS.md         # Status and claims verification ledger

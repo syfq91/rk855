@@ -39,16 +39,17 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libudev-dev pkg-config
+          sudo apt-get install -y libudev-dev pkg-config libxkbcommon-dev libgl1-mesa-dev
 
-      - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} --bin rk855
+      - name: Build release binaries
+        run: cargo build --release --target ${{ matrix.target }} --bin rk855 --bin rk855-gui
 
       - name: Package Linux release archive
         if: runner.os == 'Linux'
         run: |
           mkdir -p package/udev
-          cp target/${{ matrix.target }}/release/${{ matrix.binary }} package/
+          cp target/${{ matrix.target }}/release/rk855 package/
+          cp target/${{ matrix.target }}/release/rk855-gui package/
           cp udev/99-rk855.rules package/udev/
           cp README.md package/
           cp LICENSE package/
@@ -60,7 +61,8 @@ jobs:
         shell: powershell
         run: |
           New-Item -ItemType Directory -Path package
-          Copy-Item target/${{ matrix.target }}/release/${{ matrix.binary }} package/
+          Copy-Item target/${{ matrix.target }}/release/rk855.exe package/
+          Copy-Item target/${{ matrix.target }}/release/rk855-gui.exe package/
           Copy-Item README.md package/
           Copy-Item LICENSE package/
           Compress-Archive -Path package/* -DestinationPath ${{ matrix.archive_name }}

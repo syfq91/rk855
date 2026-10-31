@@ -6,6 +6,7 @@ members = [
     "crates/rk855-config",
     "crates/rk855-isp",
     "crates/rk855-cli",
+    "crates/rk855-gui",
 ]
 
 [workspace.package]
@@ -28,6 +29,9 @@ ihex = "3.0"
 sha2 = "0.10"
 indicatif = "0.17"
 proptest = "1.6"
+eframe = { version = "0.31", default-features = true }
+egui = "0.31"
+rfd = { version = "0.15", default-features = false, features = ["xdg-portal"] }
 
 rk855-proto = { path = "crates/rk855-proto" }
 rk855-hid = { path = "crates/rk855-hid" }

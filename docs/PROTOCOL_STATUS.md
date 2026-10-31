@@ -1,6 +1,6 @@
 # Protocol Status & Claims Verification Ledger
 
-**Last Updated:** Phase 7 Packaging & CI Verification Baseline  
+**Last Updated:** Phase 8 Native Desktop GUI Implementation Baseline  
 **Target:** Royal Kludge RK855 (RK68) / SONiX SN32F240B Microcontroller
 
 Per the **Ground Rules** of the Rust Rewrite Plan:
@@ -73,4 +73,5 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
    - **Phase 4 Remapping & Profiles:** Key remapping transactions (`04 20`), factory reset (`remap reset` with empty 256-byte table), matrix/status read-back (`04 F5`), and profile switching (`04 F1`..`04 F3`) verified against connected RK855 hardware.
    - **Phase 5 Custom Per-Key RGB:** Physical scan code to hardware matrix index mapping reversed from `0x43B320` jump table in `DeviceDriver.exe` and verified with formula $512 + 4 \times \text{matrix\_index}$. Verified against connected RK855 hardware via `rk855 rgb set-key`, `rk855 rgb load`, and `rk855 rgb clear`.
    - **Phase 6 ISP Flasher:** Complete `rk855-isp` flasher client, offline firmware analysis (`.hex` and `.bin` exact match), pre-flight sanity checks (SP, reset vector Thumb mode, `0xAAAA5555` marker, Apple descriptor, ISP trigger), guarded flashing pipeline (with mandatory per-page verification and no-reset on verify failure), mock failure injection tests, and hardware recovery guide (`docs/RECOVERY.md`) implemented.
+   - **Phase 8 Native Desktop GUI:** Native egui application (`rk855-gui`) implemented exclusively over `rk855-config` and `rk855-isp`. Features visual 68-key matrix layout, real-time per-key RGB painting, key remapping, profile management, and guarded ISP flasher with explicit safety confirmation gate.
 3. **Single-Color Variant Safety:** Retained as `unverified` pending physical testing on a monochrome LED board variant. Unified firmware binary contains code paths for both, but single-color users should exercise caution.

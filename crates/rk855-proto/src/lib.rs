@@ -16,11 +16,13 @@ pub mod remap;
 pub use constants::*;
 pub use enums::*;
 pub use keys::{
-    find_key_by_index, find_key_by_name, find_key_by_scancode, PhysicalKey, PHYSICAL_KEYS,
+    find_key_by_index, find_key_by_matrix_index, find_key_by_name, find_key_by_scancode,
+    scancode_to_matrix_index, PhysicalKey, PHYSICAL_KEYS,
 };
 pub use lighting::{
-    build_active_mode_block, build_begin_light, build_custom_rgb_header,
-    build_lighting_transaction, build_set_light, LightParams,
+    build_active_mode_block, build_begin_light, build_custom_rgb_blocks, build_custom_rgb_header,
+    build_custom_rgb_transaction, build_lighting_transaction, build_set_light, CustomRgbMap,
+    LightParams,
 };
 pub use packet::{
     build_begin_macro, build_commit, build_isp_trigger, build_macro_data, build_pwm_reload,
@@ -142,6 +144,60 @@ mod tests {
 
         let extracted = from_wire_report(&wire).expect("Failed to convert from wire");
         assert_eq!(extracted, pkt);
+    }
+
+    #[test]
+    fn test_custom_rgb_transaction() {
+        let mut map = CustomRgbMap::new();
+        map.set_key_by_name("esc", 255, 0, 0).expect("esc key set");
+        map.set_key_by_name("space", 0, 255, 0)
+            .expect("space key set");
+
+        let tx_live = build_custom_rgb_transaction(&map, false);
+        assert_eq!(
+            tx_live.len(),
+            21,
+            "Live custom RGB transaction must be 21 packets (no commit)"
+        );
+        assert_eq!(tx_live[0][0], 0x04);
+        assert_eq!(tx_live[0][1], 0x18);
+        assert_eq!(tx_live[1][0], 0x04);
+        assert_eq!(tx_live[1][1], 0x13);
+        assert_eq!(tx_live[1][8], 0x12); // 18 data blocks
+
+        // ESC is scancode 0x29 -> matrix_index 1
+        // ESC slot is in Block 9: offset 4 * 1 = 4 in key area (first data block of key records)
+        // Block 9 is packet index 10 (0: 04 18, 1: 04 13, 2..6: presets 1..5, 7..9: pad 1..3, 10: Block 9)
+        let blk9 = &tx_live[10];
+        assert_eq!(blk9[4], 0x80);
+        assert_eq!(blk9[5], 255); // Red
+        assert_eq!(blk9[6], 0); // Green
+        assert_eq!(blk9[7], 0); // Blue
+
+        // SPACE is scancode 0x2C -> matrix_index 94
+        // Key area byte offset: 94 * 4 = 376
+        // Block index in key area: 376 / 64 = 5 (Block 14 in total transaction, packet index 15)
+        // Byte index within block: 376 % 64 = 56
+        let blk14 = &tx_live[15];
+        assert_eq!(blk14[56], 0x80);
+        assert_eq!(blk14[57], 0); // Red
+        assert_eq!(blk14[58], 255); // Green
+        assert_eq!(blk14[59], 0); // Blue
+
+        // Reload packet
+        assert_eq!(tx_live[20][0], 0x04);
+        assert_eq!(tx_live[20][1], 0xF0);
+
+        let tx_persist = build_custom_rgb_transaction(&map, true);
+        assert_eq!(
+            tx_persist.len(),
+            22,
+            "Persist transaction must be 22 packets (includes 04 02 commit)"
+        );
+        assert_eq!(tx_persist[20][0], 0x04);
+        assert_eq!(tx_persist[20][1], 0x02); // Commit
+        assert_eq!(tx_persist[21][0], 0x04);
+        assert_eq!(tx_persist[21][1], 0xF0); // Reload
     }
 }
 

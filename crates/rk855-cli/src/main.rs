@@ -1,11 +1,11 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::{Parser, Subcommand};
-use rk855_config::{ConfigManager, ProfileFile};
+use rk855_config::{parse_rgb_hex, parse_rgb_json, ConfigManager, ProfileFile};
 use rk855_hid::{probe_devices, DeviceInfo, HidApiTransport, MockTransport};
 use rk855_isp::analyze_firmware_bin;
 use rk855_proto::{
-    action_code_to_name, find_key_by_name, resolve_action_code, ColorType, Direction, LightMode,
-    LightParams, ProfileSlot, RemapEntry,
+    action_code_to_name, find_key_by_name, resolve_action_code, ColorType, CustomRgbMap, Direction,
+    LightMode, LightParams, ProfileSlot, RemapEntry, PHYSICAL_KEYS,
 };
 use std::path::PathBuf;
 
@@ -56,6 +56,18 @@ enum Commands {
     Firmware {
         #[command(subcommand)]
         command: FirmwareCommands,
+    },
+
+    /// Custom per-key RGB backlighting illumination
+    Rgb {
+        #[command(subcommand)]
+        command: RgbCommands,
+    },
+
+    /// Keystroke macro configuration and protocol status
+    Macro {
+        #[command(subcommand)]
+        command: MacroCommands,
     },
 }
 
@@ -273,6 +285,145 @@ enum FirmwareCommands {
     },
 }
 
+#[derive(Subcommand, Debug)]
+enum RgbCommands {
+    /// Set custom RGB color on an individual key (e.g. `rk855 rgb set-key ESC ff0000`)
+    SetKey {
+        /// Physical key identifier (e.g. 'esc', 'caps', 'space', 'w', etc.)
+        #[arg(short, long)]
+        key: Option<String>,
+
+        /// Color hex (e.g. 'ff0000', '#00ff00', '0000ff')
+        #[arg(short, long)]
+        color: Option<String>,
+
+        /// Positional key argument (shortcut: `rk855 rgb set-key ESC ff0000`)
+        #[arg(value_name = "KEY_POS")]
+        key_pos: Option<String>,
+
+        /// Positional color argument (shortcut: `rk855 rgb set-key ESC ff0000`)
+        #[arg(value_name = "COLOR_POS")]
+        color_pos: Option<String>,
+
+        /// Live preview: updates lighting in RAM without flash write
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash memory across power cycles
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Load custom per-key RGB map from a JSON file (e.g. `{"esc": "#ff0000", "w": "#00ff00"}`)
+    Load {
+        /// Path to JSON RGB mapping file
+        #[arg(short, long)]
+        path_file: Option<PathBuf>,
+
+        /// Positional file path (shortcut: `rk855 rgb load map.json`)
+        #[arg(value_name = "FILE")]
+        pos_file: Option<PathBuf>,
+
+        /// Live preview: updates in RAM without flash write
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash memory across power cycles
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Set all 68 keys to a uniform custom color
+    SetAll {
+        /// Color hex (e.g. 'ff0000', '#00ff00')
+        color: String,
+
+        /// Live preview: updates in RAM without flash write
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash memory across power cycles
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Clear all custom per-key RGB illumination (turn off all LEDs)
+    Clear {
+        /// Live preview: updates in RAM without flash write
+        #[arg(long, conflicts_with = "persist")]
+        live: bool,
+
+        /// Persist to flash memory across power cycles
+        #[arg(long)]
+        persist: bool,
+
+        /// Specific HID device path
+        #[arg(long)]
+        path: Option<String>,
+
+        /// Run against mock transport
+        #[arg(long)]
+        mock: bool,
+
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Dump active per-key RGB color map
+    Dump {
+        /// Output results in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum MacroCommands {
+    /// Inspect keyboard macro capabilities and protocol verification status
+    Status {
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+}
+
 fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let cli = Cli::parse();
@@ -345,6 +496,49 @@ fn main() -> Result<()> {
         },
         Commands::Firmware { command } => match command {
             FirmwareCommands::Check { path, json } => run_firmware_check(path, json)?,
+        },
+        Commands::Rgb { command } => match command {
+            RgbCommands::SetKey {
+                key,
+                color,
+                key_pos,
+                color_pos,
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_rgb_set_key(
+                key, color, key_pos, color_pos, live, persist, path, mock, json,
+            )?,
+            RgbCommands::Load {
+                path_file,
+                pos_file,
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_rgb_load(path_file, pos_file, live, persist, path, mock, json)?,
+            RgbCommands::SetAll {
+                color,
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_rgb_set_all(color, live, persist, path, mock, json)?,
+            RgbCommands::Clear {
+                live,
+                persist,
+                path,
+                mock,
+                json,
+            } => run_rgb_clear(live, persist, path, mock, json)?,
+            RgbCommands::Dump { json } => run_rgb_dump(json)?,
+        },
+        Commands::Macro { command } => match command {
+            MacroCommands::Status { json } => run_macro_status(json)?,
         },
     }
 
@@ -1347,6 +1541,479 @@ fn run_profile_switch(
         );
         println!("  Target MCU:  Address remapped to Flash slot offset");
     }
+
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_rgb_set_key(
+    key_opt: Option<String>,
+    color_opt: Option<String>,
+    key_pos: Option<String>,
+    color_pos: Option<String>,
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let key_str = key_opt
+        .or(key_pos)
+        .ok_or_else(|| anyhow!("Missing key identifier. Usage: rk855 rgb set-key <KEY> <COLOR>"))?;
+    let color_str = color_opt
+        .or(color_pos)
+        .ok_or_else(|| anyhow!("Missing color. Usage: rk855 rgb set-key <KEY> <COLOR>"))?;
+
+    let phys_key = find_key_by_name(&key_str).ok_or_else(|| {
+        anyhow!(
+            "Unknown key identifier '{}'. Run 'rk855 remap dump' to inspect supported keys.",
+            key_str
+        )
+    })?;
+
+    let (r, g, b) = parse_rgb_hex(&color_str)?;
+    let is_persist = persist || !live;
+
+    // Load active profile and update custom_rgb
+    let mut profile = load_or_create_active_profile();
+    let hex_val = format!("#{:02X}{:02X}{:02X}", r, g, b);
+    let all_keys: std::collections::BTreeMap<String, String> = {
+        let rgb_map_ref = profile
+            .custom_rgb
+            .get_or_insert_with(std::collections::BTreeMap::new);
+        rgb_map_ref.insert(phys_key.name.to_string(), hex_val.clone());
+        rgb_map_ref.clone()
+    };
+    let _ = save_active_profile(&profile);
+
+    // Build CustomRgbMap from all stored keys
+    let mut custom_map = CustomRgbMap::new();
+    for (k_name, hex) in all_keys.iter() {
+        if let Ok((kr, kg, kb)) = parse_rgb_hex(hex) {
+            let _ = custom_map.set_key_by_name(k_name, kr, kg, kb);
+        }
+    }
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.apply_custom_rgb(&custom_map, is_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "key": phys_key.name,
+                    "color": hex_val,
+                    "matrix_index": phys_key.matrix_index,
+                    "buffer_offset": phys_key.rgb_buffer_offset(),
+                    "packets_sent": count,
+                    "persist": is_persist,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: set key '{}' to {} via MockTransport ({} packets sent).",
+                phys_key.name, hex_val, count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.apply_custom_rgb(&custom_map, is_persist)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "key": phys_key.name,
+                "label": phys_key.label,
+                "color": hex_val,
+                "matrix_index": phys_key.matrix_index,
+                "buffer_offset": phys_key.rgb_buffer_offset(),
+                "persist": is_persist,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Custom Per-Key RGB Applied");
+        println!("============================================================");
+        println!("  Key:           {} ({})", phys_key.label, phys_key.name);
+        println!("  Scan Code:     0x{:02X}", phys_key.scancode);
+        println!("  Matrix Index:  {}", phys_key.matrix_index);
+        println!(
+            "  Payload Offset:{} (quad: [0x80, {}, {}, {}])",
+            phys_key.rgb_buffer_offset(),
+            r,
+            g,
+            b
+        );
+        println!(
+            "  Color:         {} (R: {}, G: {}, B: {})",
+            hex_val, r, g, b
+        );
+        println!(
+            "  Persistence:   {}",
+            if is_persist {
+                "Persisted to onboard flash (04 02)"
+            } else {
+                "RAM preview only (omitted 04 02)"
+            }
+        );
+        println!(
+            "  Active Keys:   {} total keys lit in active custom profile",
+            all_keys.len()
+        );
+    }
+
+    Ok(())
+}
+
+fn run_rgb_load(
+    path_file: Option<PathBuf>,
+    pos_file: Option<PathBuf>,
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let file_path = path_file
+        .or(pos_file)
+        .ok_or_else(|| anyhow!("Missing JSON file path. Usage: rk855 rgb load <map.json>"))?;
+    let content = std::fs::read_to_string(&file_path)
+        .with_context(|| format!("Failed to read RGB JSON file: {}", file_path.display()))?;
+
+    let rgb_map = parse_rgb_json(&content)?;
+    let is_persist = persist || !live;
+
+    // Merge into active profile
+    let mut profile = load_or_create_active_profile();
+    let stored_map = profile
+        .custom_rgb
+        .get_or_insert_with(std::collections::BTreeMap::new);
+    let parsed_json: std::collections::BTreeMap<String, String> = serde_json::from_str(&content)?;
+    for (k, v) in parsed_json {
+        if let Ok((r, g, b)) = parse_rgb_hex(&v) {
+            stored_map.insert(k, format!("#{:02X}{:02X}{:02X}", r, g, b));
+        }
+    }
+    let _ = save_active_profile(&profile);
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.apply_custom_rgb(&rgb_map, is_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "file": file_path.display().to_string(),
+                    "packets_sent": count,
+                    "persist": is_persist,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: loaded RGB map from {} ({} packets sent).",
+                file_path.display(),
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.apply_custom_rgb(&rgb_map, is_persist)?;
+
+    let lit_count = rgb_map.colors.iter().filter(|c| c.is_some()).count();
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "file": file_path.display().to_string(),
+                "keys_configured": lit_count,
+                "persist": is_persist,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Custom Per-Key RGB Map Loaded");
+        println!("============================================================");
+        println!("  Source File:   {}", file_path.display());
+        println!("  Keys Lit:      {} / 68 physical keys", lit_count);
+        println!(
+            "  Persistence:   {}",
+            if is_persist {
+                "Persisted to onboard flash (04 02)"
+            } else {
+                "RAM preview only (omitted 04 02)"
+            }
+        );
+    }
+
+    Ok(())
+}
+
+fn run_rgb_set_all(
+    color_str: String,
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let (r, g, b) = parse_rgb_hex(&color_str)?;
+    let is_persist = persist || !live;
+    let hex_val = format!("#{:02X}{:02X}{:02X}", r, g, b);
+
+    let mut custom_map = CustomRgbMap::new();
+    custom_map.set_all(r, g, b);
+
+    // Update active profile
+    let mut profile = load_or_create_active_profile();
+    let stored_map = profile
+        .custom_rgb
+        .get_or_insert_with(std::collections::BTreeMap::new);
+    stored_map.clear();
+    for key in PHYSICAL_KEYS.iter() {
+        stored_map.insert(key.name.to_string(), hex_val.clone());
+    }
+    let _ = save_active_profile(&profile);
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.apply_custom_rgb(&custom_map, is_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "success",
+                    "mock": true,
+                    "color": hex_val,
+                    "packets_sent": count,
+                })
+            );
+        } else {
+            println!(
+                "Mock test successful: set all 68 keys to {} ({} packets sent).",
+                hex_val, count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.apply_custom_rgb(&custom_map, is_persist)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "status": "success",
+                "mock": false,
+                "color": hex_val,
+                "total_keys": 68,
+                "persist": is_persist,
+            })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Uniform RGB Applied to All Keys");
+        println!("============================================================");
+        println!("  Color:       {} (R: {}, G: {}, B: {})", hex_val, r, g, b);
+        println!("  Keys:        All 68 physical keys configured");
+        println!(
+            "  Persistence: {}",
+            if is_persist {
+                "Persisted to onboard flash (04 02)"
+            } else {
+                "RAM preview only (omitted 04 02)"
+            }
+        );
+    }
+
+    Ok(())
+}
+
+fn run_rgb_clear(
+    live: bool,
+    persist: bool,
+    path_opt: Option<String>,
+    mock: bool,
+    output_json: bool,
+) -> Result<()> {
+    let is_persist = persist || !live;
+
+    let mut profile = load_or_create_active_profile();
+    if let Some(ref mut m) = profile.custom_rgb {
+        m.clear();
+    }
+    let _ = save_active_profile(&profile);
+
+    let empty_map = CustomRgbMap::new();
+
+    if mock {
+        let mut mgr = ConfigManager::new(MockTransport::new());
+        mgr.apply_custom_rgb(&empty_map, is_persist)?;
+        let count = mgr.transport_mut().sent_packets.len();
+        if output_json {
+            println!(
+                "{}",
+                serde_json::json!({ "status": "success", "mock": true, "packets_sent": count })
+            );
+        } else {
+            println!(
+                "Mock test successful: cleared all custom RGB ({} packets sent).",
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    let transport = match path_opt {
+        Some(ref p) => HidApiTransport::open_path(p)
+            .with_context(|| format!("Failed to open HID device at path '{}'", p))?,
+        None => HidApiTransport::open_first_candidate()
+            .context("Failed to find or open RK855 primary config interface (Interface 0). Ensure keyboard is connected via USB.")?,
+    };
+
+    let mut mgr = ConfigManager::new(transport);
+    mgr.apply_custom_rgb(&empty_map, is_persist)?;
+
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({ "status": "success", "mock": false, "persist": is_persist })
+        );
+    } else {
+        println!("============================================================");
+        println!(" Custom Per-Key RGB Cleared");
+        println!("============================================================");
+        println!("  All 68 physical LEDs turned off");
+        println!(
+            "  Persistence: {}",
+            if is_persist {
+                "Persisted to onboard flash (04 02)"
+            } else {
+                "RAM preview only (omitted 04 02)"
+            }
+        );
+    }
+
+    Ok(())
+}
+
+fn run_rgb_dump(output_json: bool) -> Result<()> {
+    let profile = load_or_create_active_profile();
+    let custom_rgb = profile.custom_rgb.unwrap_or_default();
+
+    if output_json {
+        println!("{}", serde_json::to_string_pretty(&custom_rgb)?);
+        return Ok(());
+    }
+
+    println!("============================================================");
+    println!(" Active Custom Per-Key RGB Illumination");
+    println!("============================================================");
+    if custom_rgb.is_empty() {
+        println!("  No custom per-key RGB colors configured in active profile.");
+        println!("  Tip: Use 'rk855 rgb set-key <KEY> <COLOR>' to illuminate individual keys.");
+        println!("       Use 'rk855 rgb load <map.json>' to load an RGB key map.");
+        return Ok(());
+    }
+
+    println!("  Total configured keys: {}", custom_rgb.len());
+    println!();
+    println!(
+        "  {:<16} {:<10} {:<12} {:<14} {:<10}",
+        "Key", "ScanCode", "MatrixIndex", "PayloadOffset", "Color"
+    );
+    println!(
+        "  {:-<16} {:-<10} {:-<12} {:-<14} {:-<10}",
+        "", "", "", "", ""
+    );
+
+    for (k_name, hex_color) in &custom_rgb {
+        if let Some(key) = find_key_by_name(k_name) {
+            println!(
+                "  {:<16} 0x{:02X}       {:<12} {:<14} {}",
+                format!("{} ({})", key.label, key.name),
+                key.scancode,
+                key.matrix_index,
+                format!("{}+4", key.rgb_buffer_offset()),
+                hex_color
+            );
+        } else {
+            println!(
+                "  {:<16} {:<10} {:<12} {:<14} {}",
+                k_name, "-", "-", "-", hex_color
+            );
+        }
+    }
+
+    Ok(())
+}
+
+fn run_macro_status(output_json: bool) -> Result<()> {
+    if output_json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "subcommand_begin_macro": "0x04 0x19",
+                "subcommand_macro_data": "0x04 0x15",
+                "flash_storage_offset": "0x00009340",
+                "verification_status": "CFG-11 unverified (requires USB packet capture of recorded macro)",
+                "desktop_actions_delegation": "Categories 126-129 (Launch App, Open URL, Text Injection) are host software hooks, not executable autonomously on MCU hardware",
+            })
+        );
+        return Ok(());
+    }
+
+    println!("============================================================");
+    println!(" Keyboard Macro Capabilities & Verification Status");
+    println!("============================================================");
+    println!("  Opcode 04 19:  Begin Macro Configuration (Verified by static disassembly)");
+    println!("  Opcode 04 15:  Macro Streaming Data (Pending verified packet capture: CFG-11)");
+    println!("  Flash Target:  Sector 0x00009340 (Profile 3 / Macro user storage block)");
+    println!();
+    println!("  Desktop Actions Policy (Phase 5 Task 4):");
+    println!("    - Categories 126-129 (Launch App, Open URL, Text Injection) are host-side");
+    println!("      Windows hooks executed by vendor software (DeviceDriver.exe).");
+    println!("    - They cannot execute autonomously on keyboard MCU hardware without");
+    println!("      a running host daemon.");
+    println!("    - Per rewrite plan ground rules, unverified formats remain safely unsupported.");
 
     Ok(())
 }

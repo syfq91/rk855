@@ -30,6 +30,8 @@ pub struct ProfileFile {
     pub lighting: Option<ProfileLighting>,
     #[serde(default)]
     pub remaps: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_rgb: Option<BTreeMap<String, String>>,
 }
 
 impl Default for ProfileFile {
@@ -40,6 +42,7 @@ impl Default for ProfileFile {
             slot: Some(1),
             lighting: Some(ProfileLighting::default()),
             remaps: BTreeMap::new(),
+            custom_rgb: None,
         }
     }
 }
@@ -152,6 +155,22 @@ impl<T: HidTransport> ConfigManager<T> {
         self.apply_remap(&[], persist)
     }
 
+    /// Applies custom per-key RGB lighting to hardware.
+    ///
+    /// If `persist` is true: sends 22 packets including `04 02` commit.
+    /// If `persist` is false (`--live`): sends 21 packets omitting flash commit.
+    pub fn apply_custom_rgb(
+        &mut self,
+        rgb_map: &CustomRgbMap,
+        persist: bool,
+    ) -> Result<(), ConfigError> {
+        let pkts = build_custom_rgb_transaction(rgb_map, persist);
+        for pkt in pkts {
+            self.transport.set_feature(&pkt)?;
+        }
+        Ok(())
+    }
+
     /// Switches the active onboard profile (Profile 1, 2, or 3).
     pub fn switch_profile(&mut self, slot: ProfileSlot) -> Result<(), ConfigError> {
         self.transport.set_feature(&build_switch_profile(slot))?;
@@ -226,11 +245,75 @@ impl<T: HidTransport> ConfigManager<T> {
                 })?;
                 entries.push(RemapEntry::new(phys_key.scancode, target_code));
             }
-            self.apply_remap(&entries, persist)?;
+            if !entries.is_empty() {
+                self.apply_remap(&entries, persist)?;
+            }
+
+            // Apply custom RGB if specified
+            if let Some(ref rgb_colors) = profile.custom_rgb {
+                let mut rgb_map = CustomRgbMap::new();
+                for (key_name, hex_color) in rgb_colors {
+                    let (r, g, b) = parse_rgb_hex(hex_color)?;
+                    rgb_map.set_key_by_name(key_name, r, g, b).map_err(|_| {
+                        ConfigError::KeyResolution(format!(
+                            "Unknown key name '{}' in profile custom_rgb",
+                            key_name
+                        ))
+                    })?;
+                }
+                self.apply_custom_rgb(&rgb_map, persist)?;
+            }
         }
 
         Ok(profile)
     }
+}
+
+/// Parses hex color string like "FF0000", "#FF0000", "0x00FF00" into (R, G, B) tuple.
+pub fn parse_rgb_hex(color_str: &str) -> Result<(u8, u8, u8), ConfigError> {
+    let clean = color_str
+        .trim()
+        .trim_start_matches('#')
+        .trim_start_matches("0x")
+        .trim_start_matches("0X");
+
+    if clean.len() != 6 {
+        return Err(ConfigError::InvalidProfile(format!(
+            "Invalid hex color '{}': expected 6 hex digits (e.g. 'FF0000' or '#FF0000')",
+            color_str
+        )));
+    }
+
+    let r = u8::from_str_radix(&clean[0..2], 16).map_err(|_| {
+        ConfigError::InvalidProfile(format!("Invalid red channel in hex color '{}'", color_str))
+    })?;
+    let g = u8::from_str_radix(&clean[2..4], 16).map_err(|_| {
+        ConfigError::InvalidProfile(format!(
+            "Invalid green channel in hex color '{}'",
+            color_str
+        ))
+    })?;
+    let b = u8::from_str_radix(&clean[4..6], 16).map_err(|_| {
+        ConfigError::InvalidProfile(format!("Invalid blue channel in hex color '{}'", color_str))
+    })?;
+
+    Ok((r, g, b))
+}
+
+/// Parses a JSON map of `{"key": "color"}` into a [`CustomRgbMap`].
+pub fn parse_rgb_json(json_str: &str) -> Result<CustomRgbMap, ConfigError> {
+    let map: BTreeMap<String, String> = serde_json::from_str(json_str)
+        .map_err(|e| ConfigError::Serialization(format!("Failed to parse RGB JSON map: {e}")))?;
+
+    let mut rgb_map = CustomRgbMap::new();
+    for (key_name, hex_color) in map {
+        let (r, g, b) = parse_rgb_hex(&hex_color)?;
+        rgb_map.set_key_by_name(&key_name, r, g, b).map_err(|_| {
+            ConfigError::KeyResolution(format!("Unknown key name '{key_name}' in RGB map"))
+        })?;
+    }
+
+    Ok(rgb_map)
 }
 
 #[cfg(test)]
@@ -353,6 +436,7 @@ mod tests {
                 direction: "ltr".to_string(),
             }),
             remaps,
+            custom_rgb: None,
         };
 
         let toml_str = mgr.export_profile_toml(&profile).expect("Failed export");
@@ -367,5 +451,37 @@ mod tests {
         assert_eq!(imported.version, 1);
         assert_eq!(imported.slot, Some(2));
         assert_eq!(imported.remaps.len(), 2);
+    }
+
+    #[test]
+    fn test_custom_rgb_application() {
+        let mock = MockTransport::new();
+        let mut mgr = ConfigManager::new(mock);
+
+        let mut rgb_map = CustomRgbMap::new();
+        rgb_map.set_key_by_name("ESC", 255, 0, 0).expect("esc set");
+        rgb_map.set_key_by_name("W", 0, 255, 0).expect("w set");
+
+        mgr.apply_custom_rgb(&rgb_map, true)
+            .expect("Failed custom rgb");
+        assert_eq!(mgr.transport.sent_packets.len(), 22);
+        assert_eq!(mgr.transport.sent_packets[0][0], 0x04);
+        assert_eq!(mgr.transport.sent_packets[0][1], 0x18);
+        assert_eq!(mgr.transport.sent_packets[1][1], 0x13);
+        assert_eq!(mgr.transport.sent_packets[20][1], 0x02); // Commit
+        assert_eq!(mgr.transport.sent_packets[21][1], 0xF0); // Reload
+    }
+
+    #[test]
+    fn test_parse_rgb_json() {
+        let json_data = r##"{"esc": "#FF0000", "space": "0000FF", "caps": "0x00FF00"}"##;
+        let map = parse_rgb_json(json_data).expect("Failed json parse");
+        let esc_key = find_key_by_name("esc").unwrap();
+        let space_key = find_key_by_name("space").unwrap();
+        let caps_key = find_key_by_name("caps").unwrap();
+
+        assert_eq!(map.colors[esc_key.index], Some((255, 0, 0)));
+        assert_eq!(map.colors[space_key.index], Some((0, 0, 255)));
+        assert_eq!(map.colors[caps_key.index], Some((0, 255, 0)));
     }
 }

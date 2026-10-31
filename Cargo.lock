@@ -575,6 +575,7 @@ dependencies = [
  "rk855-hid",
  "rk855-proto",
  "serde",
+ "serde_json",
  "thiserror",
  "toml",
  "tracing",

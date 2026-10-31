@@ -5,6 +5,7 @@ use crate::constants::{
     SUBCMD_COMMIT, SUBCMD_CUSTOM_RGB_HEADER, SUBCMD_PWM_RELOAD, SUBCMD_SET_LIGHT,
 };
 use crate::enums::{ColorType, Direction, LightMode};
+use crate::keys::{find_key_by_name, PHYSICAL_KEYS};
 use crate::packet::Packet;
 use alloc::vec::Vec;
 
@@ -142,6 +143,138 @@ pub fn build_lighting_transaction(params: &LightParams) -> Vec<Packet> {
     pkts.push(commit);
 
     // 22. PWM Reload
+    let mut reload = [0u8; PAYLOAD_SIZE];
+    reload[0] = CMD_OPCODE_HEADER;
+    reload[1] = SUBCMD_PWM_RELOAD;
+    pkts.push(reload);
+
+    pkts
+}
+
+/// Representation of custom per-key RGB colors for all 68 keys.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomRgbMap {
+    /// 68 keys corresponding to PHYSICAL_KEYS order
+    pub colors: [Option<(u8, u8, u8)>; 68],
+}
+
+impl Default for CustomRgbMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CustomRgbMap {
+    pub const fn new() -> Self {
+        Self { colors: [None; 68] }
+    }
+
+    pub fn set_key_color(&mut self, key_index: usize, r: u8, g: u8, b: u8) {
+        if key_index < 68 {
+            self.colors[key_index] = Some((r, g, b));
+        }
+    }
+
+    pub fn set_key_by_name(&mut self, name: &str, r: u8, g: u8, b: u8) -> Result<(), &'static str> {
+        if let Some(key) = find_key_by_name(name) {
+            self.colors[key.index] = Some((r, g, b));
+            Ok(())
+        } else {
+            Err("Unknown key name")
+        }
+    }
+
+    pub fn set_all(&mut self, r: u8, g: u8, b: u8) {
+        self.colors.fill(Some((r, g, b)));
+    }
+
+    pub fn clear(&mut self) {
+        self.colors.fill(None);
+    }
+}
+
+/// Builds the 18 data blocks (1,152 bytes) for custom per-key RGB illumination.
+pub fn build_custom_rgb_blocks(rgb_map: &CustomRgbMap) -> Vec<Packet> {
+    let mut blocks = Vec::with_capacity(18);
+
+    // 1–5. Preset mode blocks (20 mode records of 16 bytes each)
+    let mut preset_data = [0u8; 5 * PAYLOAD_SIZE];
+    for i in 0..19 {
+        let offset = i * 16;
+        preset_data[offset] = (i + 1) as u8;
+        preset_data[offset + 1] = 0xFF;
+        preset_data[offset + 2] = 0xE1;
+        preset_data[offset + 8] = 0x01;
+        preset_data[offset + 9] = 0x0F; // Brightness 15
+        preset_data[offset + 10] = 0x0A; // Speed 10
+        preset_data[offset + 14..offset + 16].copy_from_slice(&BLOCK_TRAILER_MAGIC);
+    }
+    // Preset 20 (Custom RGB preset slot in Block 5)
+    let p20_offset = 19 * 16;
+    preset_data[p20_offset] = 0x80;
+    preset_data[p20_offset + 9] = 0x0F;
+    preset_data[p20_offset + 14..p20_offset + 16].copy_from_slice(&BLOCK_TRAILER_MAGIC);
+
+    blocks.extend_from_slice(preset_data.as_chunks::<PAYLOAD_SIZE>().0);
+
+    // 6–8. Zero-padding blocks (3 blocks)
+    for _ in 0..3 {
+        blocks.push([0u8; PAYLOAD_SIZE]);
+    }
+
+    // 9–17. Key records blocks (9 blocks = 576 bytes = 144 slots of 4 bytes)
+    let mut key_area = [0u8; 9 * PAYLOAD_SIZE];
+    // Initialize all 144 slots with 0x80 status
+    for i in (0..key_area.len()).step_by(4) {
+        key_area[i] = 0x80;
+    }
+
+    // Fill configured key colors using reversed hardware matrix mapping
+    for (i, key) in PHYSICAL_KEYS.iter().enumerate() {
+        if let Some((r, g, b)) = rgb_map.colors[i] {
+            let offset = 4 * (key.matrix_index as usize);
+            if offset + 3 < key_area.len() {
+                key_area[offset] = 0x80;
+                key_area[offset + 1] = r;
+                key_area[offset + 2] = g;
+                key_area[offset + 3] = b;
+            }
+        }
+    }
+
+    blocks.extend_from_slice(key_area.as_chunks::<PAYLOAD_SIZE>().0);
+
+    // 18. Active mode block: Custom RGB active indicator
+    let mut active_blk = [0u8; PAYLOAD_SIZE];
+    active_blk[0] = 0x80; // Active custom RGB mode
+    active_blk[1] = 0xFF;
+    active_blk[2] = 0xE1;
+    active_blk[8] = 0x01; // Color type
+    active_blk[9] = 0x0F; // Brightness 15
+    active_blk[10] = 0x0A; // Speed 10
+    active_blk[14..16].copy_from_slice(&BLOCK_TRAILER_MAGIC);
+    active_blk[62..64].copy_from_slice(&BLOCK_TRAILER_MAGIC);
+    blocks.push(active_blk);
+
+    blocks
+}
+
+/// Builds the complete custom RGB transaction.
+/// - If `persist` is true: 22 packets (Begin + Header + 18 blocks + Commit + Reload)
+/// - If `persist` is false (live preview): 21 packets (Begin + Header + 18 blocks + Reload)
+pub fn build_custom_rgb_transaction(rgb_map: &CustomRgbMap, persist: bool) -> Vec<Packet> {
+    let mut pkts = Vec::with_capacity(22);
+    pkts.push(build_begin_light());
+    pkts.push(build_custom_rgb_header(LIGHTING_BLOCK_COUNT));
+    pkts.extend(build_custom_rgb_blocks(rgb_map));
+
+    if persist {
+        let mut commit = [0u8; PAYLOAD_SIZE];
+        commit[0] = CMD_OPCODE_HEADER;
+        commit[1] = SUBCMD_COMMIT;
+        pkts.push(commit);
+    }
+
     let mut reload = [0u8; PAYLOAD_SIZE];
     reload[0] = CMD_OPCODE_HEADER;
     reload[1] = SUBCMD_PWM_RELOAD;

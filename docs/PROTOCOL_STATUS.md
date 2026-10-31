@@ -1,6 +1,6 @@
 # Protocol Status & Claims Verification Ledger
 
-**Last Updated:** Phase 4 Verification Baseline  
+**Last Updated:** Phase 5 Verification Baseline  
 **Target:** Royal Kludge RK855 (RK68) / SONiX SN32F240B Microcontroller
 
 Per the **Ground Rules** of the Rust Rewrite Plan:
@@ -66,8 +66,9 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
 
 ## 4. Open Blockers & Verification Plan
 
-1. **CFG-11 (Macro Stream Layout):** Needs packet capture of vendor software recording a macro to verify byte-level delay/key formatting.
-2. **Phase 3 & 4 Verified on Hardware:**
+1. **CFG-11 (Macro Stream Layout):** Opcode `04 19` (Begin Macro) verified by static disassembly; macro data packet `04 15` retained as `unverified` pending USB packet capture of user macro recording in official vendor software. Desktop actions (Categories 126–129: Launch App, Open URL, Text Injection) identified as host-delegated software hooks requiring a running host daemon.
+2. **Phase 3, 4 & 5 Verified on Hardware:**
    - **Phase 3 Lighting:** Direct sequence and atomic 22-packet transactions, `--live` (RAM update without flash wear), and `--persist` (flash commit `04 02`) verified against connected RK855 hardware (`0C45:8018`).
    - **Phase 4 Remapping & Profiles:** Key remapping transactions (`04 20`), factory reset (`remap reset` with empty 256-byte table), matrix/status read-back (`04 F5`), and profile switching (`04 F1`..`04 F3`) verified against connected RK855 hardware.
+   - **Phase 5 Custom Per-Key RGB:** Physical scan code to hardware matrix index mapping reversed from `0x43B320` jump table in `DeviceDriver.exe` and verified with formula $512 + 4 \times \text{matrix\_index}$. Verified against connected RK855 hardware via `rk855 rgb set-key`, `rk855 rgb load`, and `rk855 rgb clear`.
 3. **Single-Color Variant Safety:** Retained as `unverified` pending physical testing on a monochrome LED board variant. Unified firmware binary contains code paths for both, but single-color users should exercise caution.

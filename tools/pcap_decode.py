@@ -158,11 +158,16 @@ def parse_linktype_packet(linktype: int, raw: bytes, ts: float) -> Optional[UsbP
         payload = raw[header_len:]
 
         bmRequestType, bRequest, wValue, wIndex, wLength = None, None, None, None, None
-        if is_control and header_len >= 35:
-            # Control transfer setup packet is located within header: offset 27..35
-            setup = raw[27:35]
-            if len(setup) == 8:
-                bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack("<BBHHH", setup)
+        if is_control:
+            if len(payload) >= 8 and (payload[0] in (0x21, 0xA1, 0x80, 0x00)):
+                # In USBPcap URB_CONTROL_TRANSFER_EX, the 8-byte setup packet precedes payload
+                bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack("<BBHHH", payload[:8])
+                payload = payload[8:]
+            elif header_len >= 35:
+                # Setup packet in header
+                setup = raw[27:35]
+                if len(setup) == 8:
+                    bmRequestType, bRequest, wValue, wIndex, wLength = struct.unpack("<BBHHH", setup)
 
         return UsbPacket(
             timestamp_sec=ts,
@@ -270,9 +275,17 @@ def annotate_payload(data: bytes, is_control: bool, bRequest: Optional[int], wVa
         elif cmd == 0x15:
             lines.append("  -> CMD 0x15: Macro Data Block")
         elif cmd == 0x02:
-            lines.append("  -> CMD 0x02: Commit Configuration to Flash Memory")
+            if len(payload) >= 6 and (payload[2] != 0 or payload[3] != 0):
+                ack_status = payload[3]
+                flash_addr = payload[4] | (payload[5] << 8)
+                lines.append(f"  -> CMD 0x02: Commit Flash ACK (status={ack_status}, flash_addr=0x{flash_addr:04X})")
+            else:
+                lines.append("  -> CMD 0x02: Commit Configuration to Flash Memory")
         elif cmd == 0xF0:
             lines.append("  -> CMD 0xF0: PWM Reload (Apply Lighting changes immediately)")
+        elif cmd == 0xF5:
+            block_idx = payload[2] if len(payload) > 2 else 0
+            lines.append(f"  -> CMD 0xF5: Status / Matrix Read-Back Request (block={block_idx})")
         elif cmd in (0xF1, 0xF2, 0xF3):
             profile_num = cmd - 0xF0
             lines.append(f"  -> CMD 0x{cmd:02X}: Switch Profile to Slot {profile_num}")

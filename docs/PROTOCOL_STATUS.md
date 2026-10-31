@@ -38,13 +38,14 @@ Per the **Ground Rules** of the Rust Rewrite Plan:
 | **CFG-03** | Commit Configuration | `04 02 [0x00 * 62]` | `verified-by-capture` | Captured in `test_1.pcap` at packet [0083] and [0085]. Stages flash writes to user sector. |
 | **CFG-04** | PWM Reload | `04 F0 [0x00 * 62]` | `verified-by-capture` | Captured in `test_1.pcap` at packet [0084] (10.9ms after `04 02`). Applies PWM changes immediately. |
 | **CFG-05** | Profile Switching | `04 F1` (Profile 1), `04 F2` (Profile 2), `04 F3` (Profile 3) | `verified-by-disassembly` | Remaps active RAM pointer to Flash profile offsets `0x9000`, `0x90C0`, and `0x9340`. |
-| **CFG-06** | Custom Per-Key RGB Header | `04 13 00 00 00 00 00 00 12 [0x00 * 55]` | `verified-by-capture` | Captured in `test_1.pcap` packet [0082] and `test_2.pcap`. Payload byte 8 contains block count `0x12` (18 blocks). |
-| **CFG-07** | Custom Per-Key RGB Data | 19 blocks of 64 bytes (`0x4C0` = 1,216 bytes total) | `verified-by-disassembly` | 76 key records of 16 bytes each: `[status 0x80, R, G, B, ..., 0xAA, 0x55]`. |
+| **CFG-06** | Custom Per-Key RGB Header | `04 13 00 00 00 00 00 00 12 [0x00 * 55]` | `verified-by-capture` | Captured in `test_1.pcap` packet [0082] and `test_2.pcap`. Payload byte 8 contains block count `0x12` (18 blocks). Precedes the 18 data blocks in 22-packet transaction. |
+| **CFG-07** | Custom Per-Key RGB Data | 18 blocks of 64 bytes (`0x480` = 1,152 bytes) | `verified-by-capture` | Captured in `test_1.pcap` and `test_2.pcap`. Blocks 1–5 hold mode presets, Blocks 6–8 zero padding, Blocks 9–17 key records (`0x80` status), Block 18 active mode descriptor. |
 | **CFG-08** | Begin Key Remapping | `04 20 00 00 00 00 00 00 04 [0x00 * 55]` | `verified-by-disassembly` | Payload byte 8 contains block count `0x04` (4 blocks = 256 bytes follow). |
 | **CFG-09** | Key Remapping Table Data | 4 blocks of 64 bytes (256 bytes total) | `verified-by-disassembly` | 128 tuples: `[PhysicalMatrixIndex, TargetKeyCode]`. Standard categories (100–125) are mapped in hardware. Categories 126–129 (Launch App, Open URL, String Macro) require host software. |
 | **CFG-10** | Begin Macro Configuration | `04 19 [0x00 * 62]` | `verified-by-disassembly` | Staged in flash user data block. |
 | **CFG-11** | Macro Data Stream | `04 15 <seq> <len> [data...]` | `unverified` | Requires USB packet captures of user macro creation in vendor software to confirm timing / modifier byte layout. |
 | **CFG-12** | ISP Bootloader Jump Trigger | `AA 42 89 5A FF 71 62 CC [0x00 * 56]` | `verified-by-disassembly` | Matched at ROM offset `0x1790` and `0x014C`. Disassembly validates branch to Mask ROM vector at `0x1FFF0300`. |
+| **CFG-13** | Matrix / Status Read-Back | `04 F5 01` (start) then `04 F5 00` x 3 | `verified-by-capture` | Captured in `test_1.pcap` and `test_2.pcap`. Host queries status/matrix in 4 chunks of 32 bytes via `GET_REPORT` on Interface 0. |
 
 ---
 

@@ -5,8 +5,8 @@
 //! [`MockTransport`] for unit testing without attached hardware.
 
 use rk855_proto::{
-    BOOTLOADER_PID, BOOTLOADER_VID, CANDIDATE_KEYBOARD_IDS, FEATURE_REPORT_ID, PAYLOAD_SIZE,
-    WIRE_REPORT_SIZE,
+    BOOTLOADER_PID, BOOTLOADER_VID, CANDIDATE_KEYBOARD_IDS, DEFAULT_INTER_PACKET_DELAY_MS,
+    FEATURE_REPORT_ID, PAYLOAD_SIZE, WIRE_REPORT_SIZE,
 };
 use serde::{Deserialize, Serialize};
 use std::thread;
@@ -67,7 +67,7 @@ impl DeviceInfo {
         self.vendor_id == BOOTLOADER_VID && self.product_id == BOOTLOADER_PID
     }
 
-    /// Returns true if this interface is candidate for the configuration channel (Interface 0).
+    /// Returns true if this interface is candidate for the configuration channel (Interface 0, UsagePage 0x0001, Usage 0x0006).
     pub fn is_config_interface(&self) -> bool {
         self.is_candidate_rk855() && self.interface_number == 0
     }
@@ -104,6 +104,9 @@ pub struct HidApiTransport {
 
 impl HidApiTransport {
     /// Opens the specified device path.
+    ///
+    /// Opening by exact path is required because multiple HID interfaces (Interface 0 and 1)
+    /// share the exact same VID and PID on composite keyboards.
     pub fn open_path(path: &str) -> Result<Self, HidTransportError> {
         let api = hidapi::HidApi::new()?;
         let c_path = std::ffi::CString::new(path)
@@ -111,11 +114,11 @@ impl HidApiTransport {
         let device = api.open_path(&c_path)?;
         Ok(Self {
             device,
-            inter_packet_delay: Duration::from_millis(rk855_proto::DEFAULT_INTER_PACKET_DELAY_MS),
+            inter_packet_delay: Duration::from_millis(DEFAULT_INTER_PACKET_DELAY_MS),
         })
     }
 
-    /// Attempts to open the first matching RK855 candidate interface 0.
+    /// Attempts to open the primary RK855 configuration interface (Interface 0).
     pub fn open_first_candidate() -> Result<Self, HidTransportError> {
         let devices = probe_devices()?;
         let candidate = devices
@@ -130,15 +133,22 @@ impl HidApiTransport {
         Self::open_path(&candidate.path)
     }
 
-    /// Sets custom inter-packet pacing delay.
+    /// Sets custom inter-packet pacing delay (default is 10 ms).
     pub fn set_inter_packet_delay(&mut self, delay: Duration) {
         self.inter_packet_delay = delay;
+    }
+
+    /// Gets current inter-packet pacing delay.
+    pub fn inter_packet_delay(&self) -> Duration {
+        self.inter_packet_delay
     }
 }
 
 impl HidTransport for HidApiTransport {
     fn set_feature(&mut self, payload: &[u8]) -> Result<(), HidTransportError> {
-        // Wire format: 65 bytes where byte 0 is Report ID 0x00
+        // Across both Windows and Linux (hidraw), hidapi's send_feature_report expects
+        // byte 0 to be the Report ID. For Interface 0 Feature Reports, this is Report ID 0x00,
+        // followed by the 64-byte payload (65 bytes total on the wire).
         let mut wire = [0u8; WIRE_REPORT_SIZE];
         wire[0] = FEATURE_REPORT_ID;
         let copy_len = payload.len().min(PAYLOAD_SIZE);
@@ -162,8 +172,8 @@ impl HidTransport for HidApiTransport {
     }
 }
 
-/// In-memory mock transport for testing protocol packet sequences without hardware.
-#[derive(Default, Debug)]
+/// In-memory mock transport for unit testing protocol packet sequences and timing without hardware.
+#[derive(Default, Debug, Clone)]
 pub struct MockTransport {
     pub sent_packets: Vec<Vec<u8>>,
     pub queued_responses: Vec<Vec<u8>>,
@@ -174,8 +184,49 @@ impl MockTransport {
         Self::default()
     }
 
+    /// Queues a scripted response for the next `get_feature` call.
     pub fn queue_response(&mut self, resp: Vec<u8>) {
         self.queued_responses.push(resp);
+    }
+
+    /// Asserts that the total number of packets sent equals `expected`.
+    pub fn assert_packet_count(&self, expected: usize) {
+        assert_eq!(
+            self.sent_packets.len(),
+            expected,
+            "Expected {} packets sent, got {}",
+            expected,
+            self.sent_packets.len()
+        );
+    }
+
+    /// Asserts that packet at `index` has opcode `[header, subcmd]`.
+    pub fn assert_opcode(&self, index: usize, header: u8, subcmd: u8) {
+        assert!(
+            index < self.sent_packets.len(),
+            "Index {} out of bounds (sent {})",
+            index,
+            self.sent_packets.len()
+        );
+        let pkt = &self.sent_packets[index];
+        assert_eq!(
+            pkt[0], header,
+            "Packet {} header mismatch: expected 0x{:02X}, got 0x{:02X}",
+            index, header, pkt[0]
+        );
+        if pkt.len() > 1 {
+            assert_eq!(
+                pkt[1], subcmd,
+                "Packet {} subcmd mismatch: expected 0x{:02X}, got 0x{:02X}",
+                index, subcmd, pkt[1]
+            );
+        }
+    }
+
+    /// Clears all recorded sent packets and queued responses.
+    pub fn clear(&mut self) {
+        self.sent_packets.clear();
+        self.queued_responses.clear();
     }
 }
 
@@ -199,11 +250,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mock_transport_recording() {
+    fn test_mock_transport_recording_and_assertions() {
         let mut mock = MockTransport::new();
-        let pkt = [0x04, 0x18];
-        mock.set_feature(&pkt).unwrap();
-        assert_eq!(mock.sent_packets.len(), 1);
-        assert_eq!(mock.sent_packets[0], vec![0x04, 0x18]);
+        let pkt1 = [0x04, 0x18];
+        let pkt2 = [0x04, 0x02];
+
+        mock.set_feature(&pkt1).unwrap();
+        mock.set_feature(&pkt2).unwrap();
+
+        mock.assert_packet_count(2);
+        mock.assert_opcode(0, 0x04, 0x18);
+        mock.assert_opcode(1, 0x04, 0x02);
+    }
+
+    #[test]
+    fn test_mock_transport_response_queue() {
+        let mut mock = MockTransport::new();
+        let resp = vec![0x04, 0x02, 0x00, 0x01, 0xD8, 0x85];
+        mock.queue_response(resp.clone());
+
+        let received = mock.get_feature(0x00, 64).unwrap();
+        assert_eq!(received, resp);
+
+        // Subsequent read returns default empty buffer when queue exhausted
+        let empty = mock.get_feature(0x00, 64).unwrap();
+        assert_eq!(empty.len(), 64);
     }
 }
